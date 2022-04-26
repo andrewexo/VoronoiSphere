@@ -1,0 +1,281 @@
+#include "voronoi.h"
+#include "globals.h"
+#include "../glm/glm.hpp"
+
+#include <iostream>
+#include <math.h>
+#include <algorithm>
+
+//#include <boost/chrono.hpp>
+//#include <boost/timer/timer.hpp>
+
+template <>
+VoronoiSweeper<Increasing,SWEEP_AXIS>::VoronoiSweeper(std::vector<VoronoiSite>* sites, unsigned int gen, uint8_t threadId) : m_sites(sites), m_gen(gen), m_threadId(threadId)
+{
+    m_sweeplineLarge = 0.0;
+    m_sweeplineSmall = 0.0;
+	m_next = 0;
+
+	unsigned int count = std::min((int)sites->size(), (int)(m_gen * 2));
+	auto size = (2 * count - 2) * sizeof(MemBlock<Increasing>);
+	m_nextBlock = m_memBlocks = (MemBlock<Increasing>*)malloc( size );
+	block = 0;
+}
+
+template <>
+VoronoiSweeper<Decreasing,SWEEP_AXIS>::VoronoiSweeper(std::vector<VoronoiSite>* sites, unsigned int gen, uint8_t threadId) : m_sites(sites), m_gen(gen), m_threadId(threadId)
+{
+	m_sweeplineLarge = M_PI;
+	m_sweeplineSmall = 0.0;
+	m_next = (unsigned int) m_sites->size()-1;
+
+	unsigned int count = std::min((int)sites->size(), (int)(m_gen * 2));
+	auto size = (2 * count - 2) * sizeof(MemBlock<Decreasing>);
+	m_nextBlock = m_memBlocks = (MemBlock<Decreasing>*)malloc( size );
+	block = 0;
+}
+
+template <Order O, Axis A>
+VoronoiSweeper<O, A>::~VoronoiSweeper()
+{
+	free(m_memBlocks);
+}
+
+template <Order O, Axis A>
+inline SkipNode<O>* VoronoiSweeper<O, A>::initBlock()
+{
+	//CircleEvent<O>* circle = &(m_nextBlock->circleEvent);
+	new(&(m_nextBlock->priQueueNode)) PriQueueNode<O>(block);
+	new(&(m_nextBlock->skipNode)) SkipNode<O>(block);
+
+	block++;
+	return &((m_nextBlock++)->skipNode);
+}
+
+template <Order O, Axis A>
+void VoronoiSweeper<O,A>::sweep()
+{
+	processEvents();
+}
+
+template <>
+void VoronoiSweeper<Increasing,SWEEP_AXIS>::processEvents()
+{
+	// process first two sites
+	VoronoiSite* site = &(*m_sites)[m_next++];
+	SkipNode<Increasing>* node = initBlock(); node->initSite(site, m_threadId);
+	m_beachLine.insert1(node);
+
+	site = &(*m_sites)[m_next++];
+	node = initBlock(); node->initSite(site, m_threadId);
+	m_beachLine.insert2(node);
+
+	// pop events from sites and circles in order of increasing polar angle
+	while ( completedCells < m_gen && (m_next < m_sites->size() || !m_circles.empty()) )
+	{
+		if (m_circles.empty())
+		{
+			VoronoiSite* next_site = &(*m_sites)[m_next++];
+			processSiteEvent(next_site);
+		}
+		else if (m_next == m_sites->size())
+		{
+			CircleEvent<Increasing>* next_circle = m_circles.top();
+			m_circles.pop();
+			processCircleEvent(next_circle);
+		}
+		else
+		{
+			VoronoiSite* next_site = &(*m_sites)[m_next];
+			CircleEvent<Increasing>* next_circle = m_circles.top();
+
+			if (voronoi_site_event_comp(next_site, next_circle))
+			{
+				m_circles.pop();
+				processCircleEvent(next_circle);
+			}
+			else
+			{
+				m_next++;
+				processSiteEvent(next_site);
+			}
+		}
+	}
+}
+
+template <>
+void VoronoiSweeper<Decreasing,SWEEP_AXIS>::processEvents()
+{
+	// process first two sites
+	VoronoiSite* site = &(*m_sites)[m_next--];
+	SkipNode<Decreasing>* node = initBlock(); node->initSite(site, m_threadId);
+	m_beachLine.insert1(node);
+
+	site = &(*m_sites)[m_next--];
+	node = initBlock(); node->initSite(site, m_threadId);
+	m_beachLine.insert2(node);
+
+	// pop events from sites and circles in order of decreasing polar angle
+	while ( completedCells < m_gen && (m_next < m_sites->size() || !m_circles.empty()) )
+	{
+		if (m_circles.empty())
+		{
+			VoronoiSite* next_site = &(*m_sites)[m_next--];
+			processSiteEvent(next_site);
+		}
+		else if (m_next >= m_sites->size())
+		{
+			CircleEvent<Decreasing>* next_circle = m_circles.top();
+			m_circles.pop();
+			processCircleEvent(next_circle);
+		}
+		else
+		{
+			VoronoiSite* next_site = &(*m_sites)[m_next];
+			CircleEvent<Decreasing>* next_circle = m_circles.top();
+
+			if (voronoi_site_event_comp(next_site, next_circle))
+			{
+				m_next--;
+				processSiteEvent(next_site);
+			}
+			else
+			{
+				m_circles.pop();
+				processCircleEvent(next_circle);
+			}
+		}
+	}
+}
+
+template <Order O, Axis A>
+void VoronoiSweeper<O,A>::processSiteEvent(VoronoiSite* site)
+{
+	SkipNode<O>* node = initBlock(); node->initSite(site, m_threadId);
+	SkipNode<O>* node2 = initBlock();
+		
+	m_beachLine.findAndInsert(node, node2, site->m_polar, m_threadId);
+
+    removeCircleEvent(&(NODE(node, prev)->m_beachArc));
+    addCircleEventProcessSite(NODE(node, prev));
+    addCircleEventProcessSite(NODE(node, next));
+}
+
+// creates a voronoi vertex
+template <Order O, Axis A>
+void VoronoiSweeper<O,A>::processCircleEvent(CircleEvent<O>* circle)
+{
+    m_sweeplineLarge = circle->polar;
+    m_sweeplineSmall = circle->polar_small;
+
+    SkipNode<O>* sn = getSkipNodeFromCircleEvent(circle);
+    SkipNode<O>* sni = NODE(sn, prev);
+    SkipNode<O>* snk = NODE(sn, next);
+
+    // add vertex to cells
+	glm::dvec3 dv = glm::normalize(circle->center);
+	sni->m_beachArc.m_site->m_cell->addCorner(dv, m_threadId);
+	sn->m_beachArc.m_site->m_cell->addCorner(dv, m_threadId);
+	snk->m_beachArc.m_site->m_cell->addCorner(dv, m_threadId);
+
+    // remove circle events of neighbors
+    removeCircleEvent(&(sni->m_beachArc));
+    removeCircleEvent(&(snk->m_beachArc));
+
+    // remove site from beachline
+    m_beachLine.erase(sn, m_threadId);
+
+    // check for new circle events
+    addCircleEventProcessCircle(sni);
+    addCircleEventProcessCircle(snk);
+
+	getPriQueueNodeFromCircleEvent(circle)->clear();
+}
+
+template <>
+glm::dvec3 VoronoiSweeper<Increasing,SWEEP_AXIS>::circumcenter(const glm::dvec3 & i, const glm::dvec3 & j, const glm::dvec3 & k)
+{
+    return glm::normalize( glm::cross((i-j),(k-j)) );
+}
+
+template <>
+glm::dvec3 VoronoiSweeper<Decreasing,SWEEP_AXIS>::circumcenter(const glm::dvec3 & i, const glm::dvec3 & j, const glm::dvec3 & k)
+{
+	return glm::normalize( glm::cross((k-j),(i-j)) );
+}
+
+template <Order O, Axis A>
+void VoronoiSweeper<O,A>::addCircleEventProcessSite(SkipNode<O>* node)
+{
+    glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
+							 node->m_beachArc.m_site->m_position, 
+							 NODE(node, next)->m_beachArc.m_site->m_position);
+
+    double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
+    double large_polar = acos(cc.COMPONENT);
+
+    addCircleEvent(node, large_polar, small_polar, cc);
+}
+
+template <>
+void VoronoiSweeper<Increasing,SWEEP_AXIS>::addCircleEventProcessCircle(SkipNode<Increasing>* node)
+{
+	glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
+							 node->m_beachArc.m_site->m_position,
+							 NODE(node, next)->m_beachArc.m_site->m_position);
+
+	double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
+	double large_polar = acos(cc.COMPONENT);
+
+    if ((large_polar - m_sweeplineLarge) + (small_polar - m_sweeplineSmall) >= 0) addCircleEvent(node, large_polar, small_polar, cc);
+}
+
+template <>
+void VoronoiSweeper<Decreasing,SWEEP_AXIS>::addCircleEventProcessCircle(SkipNode<Decreasing>* node)
+{
+	glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
+		node->m_beachArc.m_site->m_position,
+		NODE(node, next)->m_beachArc.m_site->m_position);
+
+	double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
+	double large_polar = acos(cc.COMPONENT);
+
+	if ((large_polar - m_sweeplineLarge) - (small_polar - m_sweeplineSmall) <= 0) addCircleEvent(node, large_polar, small_polar, cc);
+}
+
+template <>
+inline bool VoronoiSweeper<Decreasing,SWEEP_AXIS>::onOtherSide(const glm::dvec3 & cc)
+{
+	return cc.COMPONENT > 0.0;
+}
+
+template <>
+inline bool VoronoiSweeper<Increasing,SWEEP_AXIS>::onOtherSide(const glm::dvec3 & cc)
+{
+	return cc.COMPONENT < -0.0;
+}
+
+template <Order O, Axis A>
+inline void VoronoiSweeper<O,A>::addCircleEvent(SkipNode<O>* node, double large_polar, double small_polar, const glm::dvec3 & cc)
+{
+	//if (onOtherSide(cc)) return;
+
+    new(getCircleEventFromSkipNode(node)) CircleEvent<O>(large_polar, small_polar, cc);
+	node->m_beachArc.m_eventValid = true;
+    m_circles.push(getPriQueueNodeFromSkipNode(node));
+}
+
+template <Order O, Axis A>
+void VoronoiSweeper<O,A>::removeCircleEvent(BeachArc<O>* arc)
+{
+    if (arc->m_eventValid)
+    {
+        m_circles.erase(getPriQueueNodeFromBeachArc(arc));
+		getPriQueueNodeFromBeachArc(arc)->clear();
+		arc->m_eventValid = false;
+    }
+}
+
+// forward declare template types so compiler generates code to link against
+template class VoronoiSweeper<Increasing,SWEEP_AXIS>;
+template class VoronoiSweeper<Decreasing,SWEEP_AXIS>;

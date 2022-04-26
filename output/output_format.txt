@@ -1,0 +1,9 @@
+This document explains the format of the output of the voronoi tessellation generator.
+
+The output file should contain a list of voronoi cells. The cell data is written directly as binary data in the following format: 
+
+	First 4 bytes = number of corners
+
+	Next 24 bytes = 3 doubles representing the X,Y,Z coordinates of the cell centroid
+
+	Following blocks of 24 bytes represent the location of each cell corner. The cell corners are in clockwise order.
