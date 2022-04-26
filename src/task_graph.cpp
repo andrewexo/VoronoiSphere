@@ -36,21 +36,21 @@ void TaskGraph::processTasksThread(TaskGraph* tg)
     {
         tg->m_lock.lock();
         
-        Task* t = NULL;
+        Task* task = NULL;
         if (tg->m_leaves.size())
         {
-            t = tg->m_leaves.back();
+            task = tg->m_leaves.back();
             tg->m_leaves.pop_back();
         }
 
         tg->m_lock.unlock();
 
-        if (t)
+        if (task)
         {
-            t->process();
+            task->process();
 
             tg->m_lock.lock();
-            tg->markTaskComplete(t);
+            tg->markTaskComplete(task);
             tg->m_lock.unlock();
         }
 

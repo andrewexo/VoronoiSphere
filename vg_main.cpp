@@ -17,7 +17,8 @@ int main(int argc, char* argv[])
 
 	auto start = std::chrono::high_resolution_clock::now();
     vg.generate(points, count, gen, true);
-	double elapsed = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count();
+	double elapsed = std::chrono::duration_cast<std::chrono::microseconds>
+        (std::chrono::high_resolution_clock::now() - start).count();
 	std::cout << elapsed / 1000.0 << " milliseconds\n";
 
     delete[] points;
