@@ -5,11 +5,12 @@
 
 constexpr double PI2 = 2.0 * M_PI;
 
-VoronoiSite::VoronoiSite()
-{
-}
+VoronoiSite::VoronoiSite() {}
 
-VoronoiSite::VoronoiSite(const glm::dvec3 & p, VoronoiCell* cell, Axis a)
+VoronoiSite::VoronoiSite(
+    const glm::dvec3 & p, 
+    VoronoiCell* cell, 
+    Axis a)
 {
     m_position = p;
     m_cell = cell;

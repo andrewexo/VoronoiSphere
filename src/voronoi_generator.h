@@ -29,7 +29,13 @@ class VoronoiGenerator
 
         SampleGenerator sample_generator;
         VoronoiCell* cell_vector;
+        
+        // max number of cells to generate
         unsigned int m_size;
+
+        // number of cells to generate
+        // use if you want part of the sphere 
+        // to be generated
 		unsigned int m_gen;
 
         std::vector<VoronoiSite> m_sitesX;

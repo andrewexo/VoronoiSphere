@@ -11,16 +11,19 @@ class VoronoiSite
 {
 public:
 
-    VoronoiSite();
-    VoronoiSite(const glm::dvec3 & p, VoronoiCell* cell, Axis a);
+  VoronoiSite();
+  VoronoiSite(
+    const glm::dvec3 & p, 
+    VoronoiCell* cell, 
+    Axis a);
 
-    glm::dvec3 m_position;
-    double m_azimuth, m_polar;
+  glm::dvec3 m_position;
+  double m_azimuth, m_polar;
 
-    double m_polSin, m_polCos;
-    double m_aziSinPS, m_aziCosPS;
+  double m_polSin, m_polCos;
+  double m_aziSinPS, m_aziCosPS;
 
-    VoronoiCell* m_cell;
+  VoronoiCell* m_cell;
 };
 
 #endif

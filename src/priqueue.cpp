@@ -216,7 +216,7 @@ void PriQueue<O>::erase(PriQueueNode<O>* node)
     }
 }
 
-// forward declare template types so compiler generates code to link against
+// Forward declare template types so compiler generates code to link against
 template class PriQueue<Increasing>;
 template class PriQueue<Decreasing>;
 

@@ -13,339 +13,414 @@
 
 VoronoiGenerator::VoronoiGenerator()
 {
-    cell_vector = NULL;
+  cell_vector = NULL;
 }
 
 VoronoiGenerator::VoronoiGenerator(unsigned int seed) : sample_generator(seed)
 {
-    cell_vector = NULL;
+  cell_vector = NULL;
 }
 
 VoronoiGenerator::~VoronoiGenerator()
 {
-    delete[] cell_vector;
+  delete[] cell_vector;
 }
 
 void VoronoiGenerator::clear()
 {
-    delete[] cell_vector;
-    cell_vector = NULL;
+  delete[] cell_vector;
+  cell_vector = NULL;
 }
 
 glm::dvec3 * VoronoiGenerator::genRandomInput(int count)
 {
-    return sample_generator.getRandomPointsSphere(count);
+  return sample_generator.getRandomPointsSphere(count);
 }
 
 void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool writeToFile)
 {
-    {
-        boost::timer::auto_cpu_timer total;
+  {
+    boost::timer::auto_cpu_timer total;
 
-        m_size = count;
-		m_gen = gen;
-        cell_vector = new VoronoiCell[count];
+    m_size = count;
+    m_gen = gen;
+    cell_vector = new VoronoiCell[count];
 
-        TaskGraph taskGraph; buildTaskGraph(&taskGraph, points);
-        taskGraph.processTasks(6);
-        completedCells = 0;
+    TaskGraph taskGraph; buildTaskGraph(&taskGraph, points);
+    taskGraph.processTasks(6);
+    completedCells = 0;
 
-        std::cout << "total:\n";
-    }
+    std::cout << "total:\n";
+  }
 
-    if (writeToFile) writeDataToFile();
+  if (writeToFile) writeDataToFile();
 }
 
-inline void VoronoiGenerator::generateInitCellsTasks(TaskGraph * tg, glm::dvec3 * points, SyncTask *& syncOut)
+inline void VoronoiGenerator
+::generateInitCellsTasks(
+  TaskGraph * tg, 
+  glm::dvec3 * points, 
+  SyncTask *& syncOut)
 {
-    InitCellsTask* ict1 = new InitCellsTask;
-    InitCellsTask* ict2 = new InitCellsTask;
-    InitCellsTask* ict3 = new InitCellsTask;
+  InitCellsTask* ict1 = new InitCellsTask;
+  InitCellsTask* ict2 = new InitCellsTask;
+  InitCellsTask* ict3 = new InitCellsTask;
 
-    ict1->td = { cell_vector, points, 0,								  (unsigned int)(1.f / 6.f * m_size) - 1 };
-    ict2->td = { cell_vector, points, (unsigned int)(1.f / 6.f * m_size), (unsigned int)(2.f / 6.f * m_size) - 1 };
-    ict3->td = { cell_vector, points, (unsigned int)(2.f / 6.f * m_size), (unsigned int)(3.f / 6.f * m_size) - 1 };
+  ict1->td = { 
+    cell_vector, 
+    points, 
+    0,								  
+    (unsigned int)(1.f / 6.f * m_size) - 1 };
 
-    tg->addTask(ict1);
-    tg->addTask(ict2);
-    tg->addTask(ict3);
+  ict2->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(1.f / 6.f * m_size), 
+    (unsigned int)(2.f / 6.f * m_size) - 1 };
 
-    InitCellsAndResizeSitesTask* icrt1 = new InitCellsAndResizeSitesTask;
-    InitCellsAndResizeSitesTask* icrt2 = new InitCellsAndResizeSitesTask;
-    InitCellsAndResizeSitesTask* icrt3 = new InitCellsAndResizeSitesTask;
+  ict3->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(2.f / 6.f * m_size), 
+    (unsigned int)(3.f / 6.f * m_size) - 1 };
 
-    icrt1->td = { cell_vector, points, (unsigned int)(3.f / 6.f * m_size), (unsigned int)(4.f / 6.f * m_size) - 1, &m_sitesX, m_size };
-    icrt2->td = { cell_vector, points, (unsigned int)(4.f / 6.f * m_size), (unsigned int)(5.f / 6.f * m_size) - 1, &m_sitesY, m_size };
-    icrt3->td = { cell_vector, points, (unsigned int)(5.f / 6.f * m_size), m_size - 1,							   &m_sitesZ, m_size };
+  tg->addTask(ict1);
+  tg->addTask(ict2);
+  tg->addTask(ict3);
 
-    tg->addTask(icrt1);
-    tg->addTask(icrt2);
-    tg->addTask(icrt3);
+  InitCellsAndResizeSitesTask* icrt1 = new InitCellsAndResizeSitesTask;
+  InitCellsAndResizeSitesTask* icrt2 = new InitCellsAndResizeSitesTask;
+  InitCellsAndResizeSitesTask* icrt3 = new InitCellsAndResizeSitesTask;
 
-    SyncTask* sync = new SyncTask;
-    tg->addTask(sync);
+  icrt1->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(3.f / 6.f * m_size), 
+    (unsigned int)(4.f / 6.f * m_size) - 1, 
+    &m_sitesX, 
+    m_size };
 
-    tg->addDependency(ict1, sync);
-    tg->addDependency(ict2, sync);
-    tg->addDependency(ict3, sync);
-    tg->addDependency(icrt1, sync);
-    tg->addDependency(icrt2, sync);
-    tg->addDependency(icrt3, sync);
+  icrt2->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(4.f / 6.f * m_size), 
+    (unsigned int)(5.f / 6.f * m_size) - 1, 
+    &m_sitesY, 
+    m_size };
 
-    syncOut = sync;
+  icrt3->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(5.f / 6.f * m_size), 
+    m_size - 1,							   
+    &m_sitesZ, 
+    m_size };
+
+  tg->addTask(icrt1);
+  tg->addTask(icrt2);
+  tg->addTask(icrt3);
+
+  SyncTask* sync = new SyncTask;
+  tg->addTask(sync);
+
+  tg->addDependency(ict1, sync);
+  tg->addDependency(ict2, sync);
+  tg->addDependency(ict3, sync);
+  tg->addDependency(icrt1, sync);
+  tg->addDependency(icrt2, sync);
+  tg->addDependency(icrt3, sync);
+
+  syncOut = sync;
 }
 
-inline void VoronoiGenerator::generateInitSitesTasks(TaskGraph * tg, SyncTask * syncIn, SyncXYZ & syncOut)
+inline void VoronoiGenerator
+::generateInitSitesTasks(
+  TaskGraph * tg, 
+  SyncTask * syncIn, 
+  SyncXYZ & syncOut)
 {
-    InitSitesTask<X>* ist1 = new InitSitesTask<X>;
-    InitSitesTask<X>* ist2 = new InitSitesTask<X>;
-    InitSitesTask<Y>* ist3 = new InitSitesTask<Y>;
-    InitSitesTask<Y>* ist4 = new InitSitesTask<Y>;
-    InitSitesTask<Z>* ist5 = new InitSitesTask<Z>;
-    InitSitesTask<Z>* ist6 = new InitSitesTask<Z>;
+  InitSitesTask<X>* ist1 = new InitSitesTask<X>;
+  InitSitesTask<X>* ist2 = new InitSitesTask<X>;
+  InitSitesTask<Y>* ist3 = new InitSitesTask<Y>;
+  InitSitesTask<Y>* ist4 = new InitSitesTask<Y>;
+  InitSitesTask<Z>* ist5 = new InitSitesTask<Z>;
+  InitSitesTask<Z>* ist6 = new InitSitesTask<Z>;
 
-    ist1->td = { cell_vector, 0,						(unsigned int)m_size / 2 - 1, &m_sitesX };
-    ist2->td = { cell_vector, (unsigned int)m_size / 2, (unsigned int)m_size - 1,	  &m_sitesX };
-    ist3->td = { cell_vector, 0,						(unsigned int)m_size / 2 - 1, &m_sitesY };
-    ist4->td = { cell_vector, (unsigned int)m_size / 2, (unsigned int)m_size - 1,	  &m_sitesY };
-    ist5->td = { cell_vector, 0,						(unsigned int)m_size / 2 - 1, &m_sitesZ };
-    ist6->td = { cell_vector, (unsigned int)m_size / 2, (unsigned int)m_size - 1,	  &m_sitesZ };
+  ist1->td = { 
+    cell_vector, 
+    0, 
+    (unsigned int)m_size / 2 - 1, 
+    &m_sitesX };
 
-    tg->addTask(ist1);
-    tg->addTask(ist2);
-    tg->addTask(ist3);
-    tg->addTask(ist4);
-    tg->addTask(ist5);
-    tg->addTask(ist6);
+  ist2->td = { 
+    cell_vector, 
+    (unsigned int)m_size / 2,
+    (unsigned int)m_size - 1,	  
+    &m_sitesX };
 
-    tg->addDependency(syncIn, ist1);
-    tg->addDependency(syncIn, ist2);
-    tg->addDependency(syncIn, ist3);
-    tg->addDependency(syncIn, ist4);
-    tg->addDependency(syncIn, ist5);
-    tg->addDependency(syncIn, ist6);
+  ist3->td = { 
+    cell_vector,
+    0,						
+    (unsigned int)m_size / 2 - 1, 
+    &m_sitesY };
 
-    SyncTask* syncX = new SyncTask;
-    SyncTask* syncY = new SyncTask;
-    SyncTask* syncZ = new SyncTask;
-    tg->addTask(syncX);
-    tg->addTask(syncY);
-    tg->addTask(syncZ);
+  ist4->td = { 
+    cell_vector, 
+    (unsigned int)m_size / 2, 
+    (unsigned int)m_size - 1,	  
+    &m_sitesY };
 
-    tg->addDependency(ist1, syncX);
-    tg->addDependency(ist2, syncX);
-    tg->addDependency(ist3, syncY);
-    tg->addDependency(ist4, syncY);
-    tg->addDependency(ist5, syncZ);
-    tg->addDependency(ist6, syncZ);
+  ist5->td = { 
+    cell_vector, 
+    0,						
+    (unsigned int)m_size / 2 - 1, 
+    &m_sitesZ };
 
-    syncOut.syncX = syncX;
-    syncOut.syncY = syncY;
-    syncOut.syncZ = syncZ;
+  ist6->td = { 
+    cell_vector, 
+    (unsigned int)m_size / 2, 
+    (unsigned int)m_size - 1,	  
+    &m_sitesZ };
+
+  tg->addTask(ist1);
+  tg->addTask(ist2);
+  tg->addTask(ist3);
+  tg->addTask(ist4);
+  tg->addTask(ist5);
+  tg->addTask(ist6);
+
+  tg->addDependency(syncIn, ist1);
+  tg->addDependency(syncIn, ist2);
+  tg->addDependency(syncIn, ist3);
+  tg->addDependency(syncIn, ist4);
+  tg->addDependency(syncIn, ist5);
+  tg->addDependency(syncIn, ist6);
+
+  SyncTask* syncX = new SyncTask;
+  SyncTask* syncY = new SyncTask;
+  SyncTask* syncZ = new SyncTask;
+  tg->addTask(syncX);
+  tg->addTask(syncY);
+  tg->addTask(syncZ);
+
+  tg->addDependency(ist1, syncX);
+  tg->addDependency(ist2, syncX);
+  tg->addDependency(ist3, syncY);
+  tg->addDependency(ist4, syncY);
+  tg->addDependency(ist5, syncZ);
+  tg->addDependency(ist6, syncZ);
+
+  syncOut.syncX = syncX;
+  syncOut.syncY = syncY;
+  syncOut.syncZ = syncZ;
 }
 
 inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & syncInOut)
 {
-    SortPoints1Task* sp1 = new SortPoints1Task;
-    SortPoints2Task* sp2 = new SortPoints2Task;
-    SortPoints1Task* sp3 = new SortPoints1Task;
-    SortPoints2Task* sp4 = new SortPoints2Task;
-    SortPoints1Task* sp5 = new SortPoints1Task;
-    SortPoints2Task* sp6 = new SortPoints2Task;
+  SortPoints1Task* sp1 = new SortPoints1Task;
+  SortPoints2Task* sp2 = new SortPoints2Task;
+  SortPoints1Task* sp3 = new SortPoints1Task;
+  SortPoints2Task* sp4 = new SortPoints2Task;
+  SortPoints1Task* sp5 = new SortPoints1Task;
+  SortPoints2Task* sp6 = new SortPoints2Task;
 
-    VoronoiSite** temps1 = new VoronoiSite*[2]; temps1[0] = temps1[1] = NULL;
-    VoronoiSite** temps2 = new VoronoiSite*[2]; temps2[0] = temps2[1] = NULL;
-    VoronoiSite** temps3 = new VoronoiSite*[2]; temps3[0] = temps3[1] = NULL;
-    bool* done1 = new bool[2]; done1[0] = done1[1] = false;
-    bool* done2 = new bool[2]; done2[0] = done2[1] = false;
-    bool* done3 = new bool[2]; done3[0] = done3[1] = false;
+  VoronoiSite** temps1 = new VoronoiSite*[2]; temps1[0] = temps1[1] = NULL;
+  VoronoiSite** temps2 = new VoronoiSite*[2]; temps2[0] = temps2[1] = NULL;
+  VoronoiSite** temps3 = new VoronoiSite*[2]; temps3[0] = temps3[1] = NULL;
+  bool* done1 = new bool[2]; done1[0] = done1[1] = false;
+  bool* done2 = new bool[2]; done2[0] = done2[1] = false;
+  bool* done3 = new bool[2]; done3[0] = done3[1] = false;
 
-    sp1->td = { &m_sitesX, temps1, done1 };
-    sp2->td = { &m_sitesX, temps1 + 1, done1 + 1 };
-    sp3->td = { &m_sitesY, temps2, done2 };
-    sp4->td = { &m_sitesY, temps2 + 1, done2 + 1 };
-    sp5->td = { &m_sitesZ, temps3, done3 };
-    sp6->td = { &m_sitesZ, temps3 + 1, done3 + 1 };
+  sp1->td = { &m_sitesX, temps1, done1 };
+  sp2->td = { &m_sitesX, temps1 + 1, done1 + 1 };
+  sp3->td = { &m_sitesY, temps2, done2 };
+  sp4->td = { &m_sitesY, temps2 + 1, done2 + 1 };
+  sp5->td = { &m_sitesZ, temps3, done3 };
+  sp6->td = { &m_sitesZ, temps3 + 1, done3 + 1 };
 
-    tg->addTask(sp1);
-    tg->addTask(sp2);
-    tg->addTask(sp3);
-    tg->addTask(sp4);
-    tg->addTask(sp5);
-    tg->addTask(sp6);
+  tg->addTask(sp1);
+  tg->addTask(sp2);
+  tg->addTask(sp3);
+  tg->addTask(sp4);
+  tg->addTask(sp5);
+  tg->addTask(sp6);
 
-    tg->addDependency(syncInOut.syncX, sp1);
-    tg->addDependency(syncInOut.syncX, sp2);
-    tg->addDependency(syncInOut.syncY, sp3);
-    tg->addDependency(syncInOut.syncY, sp4);
-    tg->addDependency(syncInOut.syncZ, sp5);
-    tg->addDependency(syncInOut.syncZ, sp6);
+  tg->addDependency(syncInOut.syncX, sp1);
+  tg->addDependency(syncInOut.syncX, sp2);
+  tg->addDependency(syncInOut.syncY, sp3);
+  tg->addDependency(syncInOut.syncY, sp4);
+  tg->addDependency(syncInOut.syncZ, sp5);
+  tg->addDependency(syncInOut.syncZ, sp6);
 
-    SyncTask* syncX = new SyncTask;
-    SyncTask* syncY = new SyncTask;
-    SyncTask* syncZ = new SyncTask;
-    tg->addTask(syncX);
-    tg->addTask(syncY);
-    tg->addTask(syncZ);
+  SyncTask* syncX = new SyncTask;
+  SyncTask* syncY = new SyncTask;
+  SyncTask* syncZ = new SyncTask;
+  tg->addTask(syncX);
+  tg->addTask(syncY);
+  tg->addTask(syncZ);
 
-    tg->addDependency(sp1, syncX);
-    tg->addDependency(sp2, syncX);
-    tg->addDependency(sp3, syncY);
-    tg->addDependency(sp4, syncY);
-    tg->addDependency(sp5, syncZ);
-    tg->addDependency(sp6, syncZ);
+  tg->addDependency(sp1, syncX);
+  tg->addDependency(sp2, syncX);
+  tg->addDependency(sp3, syncY);
+  tg->addDependency(sp4, syncY);
+  tg->addDependency(sp5, syncZ);
+  tg->addDependency(sp6, syncZ);
 
-    syncInOut.syncX = syncX;
-    syncInOut.syncY = syncY;
-    syncInOut.syncZ = syncZ;
+  syncInOut.syncX = syncX;
+  syncInOut.syncY = syncY;
+  syncInOut.syncZ = syncZ;
 }
 
-inline void VoronoiGenerator::generateSweepTasks(TaskGraph * tg, SyncXYZ & syncIn, SyncTask *& syncOut)
+inline void VoronoiGenerator
+::generateSweepTasks(
+  TaskGraph * tg, 
+  SyncXYZ & syncIn, 
+  SyncTask *& syncOut)
 {
-    SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
-    SweepTask<Decreasing, X>* sweepDX = new SweepTask<Decreasing, X>;
-    SweepTask<Increasing, Y>* sweepIY = new SweepTask<Increasing, Y>;
-    SweepTask<Decreasing, Y>* sweepDY = new SweepTask<Decreasing, Y>;
-    SweepTask<Increasing, Z>* sweepIZ = new SweepTask<Increasing, Z>;
-    SweepTask<Decreasing, Z>* sweepDZ = new SweepTask<Decreasing, Z>;
+  SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
+  SweepTask<Decreasing, X>* sweepDX = new SweepTask<Decreasing, X>;
+  SweepTask<Increasing, Y>* sweepIY = new SweepTask<Increasing, Y>;
+  SweepTask<Decreasing, Y>* sweepDY = new SweepTask<Decreasing, Y>;
+  SweepTask<Increasing, Z>* sweepIZ = new SweepTask<Increasing, Z>;
+  SweepTask<Decreasing, Z>* sweepDZ = new SweepTask<Decreasing, Z>;
 
-    sweepIX->td = { &m_sitesX, m_gen, 1 };
-    sweepDX->td = { &m_sitesX, m_gen, 1 << 1 };
-    sweepIY->td = { &m_sitesY, m_gen, 1 << 2 };
-    sweepDY->td = { &m_sitesY, m_gen, 1 << 3 };
-    sweepIZ->td = { &m_sitesZ, m_gen, 1 << 4 };
-    sweepDZ->td = { &m_sitesZ, m_gen, 1 << 5 };
+  sweepIX->td = { &m_sitesX, m_gen, 1 };
+  sweepDX->td = { &m_sitesX, m_gen, 1 << 1 };
+  sweepIY->td = { &m_sitesY, m_gen, 1 << 2 };
+  sweepDY->td = { &m_sitesY, m_gen, 1 << 3 };
+  sweepIZ->td = { &m_sitesZ, m_gen, 1 << 4 };
+  sweepDZ->td = { &m_sitesZ, m_gen, 1 << 5 };
 
-    tg->addTask(sweepIX);
-    tg->addTask(sweepIY);
-    tg->addTask(sweepIZ);
-    tg->addTask(sweepDX);
-    tg->addTask(sweepDY);
-    tg->addTask(sweepDZ);
+  tg->addTask(sweepIX);
+  tg->addTask(sweepIY);
+  tg->addTask(sweepIZ);
+  tg->addTask(sweepDX);
+  tg->addTask(sweepDY);
+  tg->addTask(sweepDZ);
 
-    tg->addDependency(syncIn.syncX, sweepIX);
-    tg->addDependency(syncIn.syncX, sweepDX);
-    tg->addDependency(syncIn.syncY, sweepIY);
-    tg->addDependency(syncIn.syncY, sweepDY);
-    tg->addDependency(syncIn.syncZ, sweepIZ);
-    tg->addDependency(syncIn.syncZ, sweepDZ);
+  tg->addDependency(syncIn.syncX, sweepIX);
+  tg->addDependency(syncIn.syncX, sweepDX);
+  tg->addDependency(syncIn.syncY, sweepIY);
+  tg->addDependency(syncIn.syncY, sweepDY);
+  tg->addDependency(syncIn.syncZ, sweepIZ);
+  tg->addDependency(syncIn.syncZ, sweepDZ);
 
-    SyncTask* sync = new SyncTask;
-    tg->addTask(sync);
+  SyncTask* sync = new SyncTask;
+  tg->addTask(sync);
 
-    tg->addDependency(sweepIX, sync);
-    tg->addDependency(sweepIY, sync);
-    tg->addDependency(sweepIZ, sync);
-    tg->addDependency(sweepDX, sync);
-    tg->addDependency(sweepDY, sync);
-    tg->addDependency(sweepDZ, sync);
+  tg->addDependency(sweepIX, sync);
+  tg->addDependency(sweepIY, sync);
+  tg->addDependency(sweepIZ, sync);
+  tg->addDependency(sweepDX, sync);
+  tg->addDependency(sweepDY, sync);
+  tg->addDependency(sweepDZ, sync);
 
-    syncOut = sync;
+  syncOut = sync;
 }
 
 inline void VoronoiGenerator::generateSortCellCornersTasks(TaskGraph * tg, SyncTask * syncIn)
 {
-    for (int i = 0; i<6; i++)
-    {
-        SortCellCornersTask* scct = new SortCellCornersTask;
-        scct->td = { cell_vector, (unsigned int)(i / 6.f * m_size), (unsigned int)((i + 1) / 6.f * m_size - 1) };
+  for (int i = 0; i<6; i++)
+  {
+    SortCellCornersTask* scct = new SortCellCornersTask;
+    scct->td = { cell_vector, (unsigned int)(i / 6.f * m_size), (unsigned int)((i + 1) / 6.f * m_size - 1) };
 
-        tg->addTask(scct);
-        tg->addDependency(syncIn, scct);
-    }
+    tg->addTask(scct);
+    tg->addDependency(syncIn, scct);
+  }
 }
 
 void VoronoiGenerator::buildTaskGraph(TaskGraph* tg, glm::dvec3* points)
 {
-    SyncTask* sync;
-    SyncXYZ syncXYZ;
+  SyncTask* sync;
+  SyncXYZ syncXYZ;
 
-    generateInitCellsTasks(tg, points, sync);
-    generateInitSitesTasks(tg, sync, syncXYZ);
-    generateSortPointsTasks(tg, syncXYZ);
-    generateSweepTasks(tg, syncXYZ, sync);
-    generateSortCellCornersTasks(tg, sync);
+  generateInitCellsTasks(tg, points, sync);
+  generateInitSitesTasks(tg, sync, syncXYZ);
+  generateSortPointsTasks(tg, syncXYZ);
+  generateSweepTasks(tg, syncXYZ, sync);
+  generateSortCellCornersTasks(tg, sync);
 
-    tg->finalizeGraph();
+  tg->finalizeGraph();
 }
 
 
 inline void VoronoiGenerator::writeCell(std::ofstream & os, int i)
 {
-	if (cell_vector[i].m_arcs != 0)
-		return;
+  if (cell_vector[i].m_arcs != 0)
+    return;
 
-    int numCorners = (int)cell_vector[i].corners.size();
+  int numCorners = (int)cell_vector[i].corners.size();
 
-	if (numCorners < 3)
-		return;
+  if (numCorners < 3)
+    return;
 
-    os.write(reinterpret_cast <const char*>(&numCorners), sizeof(int));
+  os.write(reinterpret_cast <const char*>(&numCorners), sizeof(int));
 #ifdef CENTROID
-    os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.x)), sizeof(double));
-    os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.y)), sizeof(double));
-    os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.z)), sizeof(double));
+  os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.x)), sizeof(double));
+  os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.y)), sizeof(double));
+  os.write(reinterpret_cast <const char*>(&(cell_vector[i].position.z)), sizeof(double));
 #endif
-    for (int j = 0; j < numCorners; j++)
-    {
-        os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].x)), sizeof(double));
-        os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].y)), sizeof(double));
-        os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].z)), sizeof(double));
-    }
+  for (int j = 0; j < numCorners; j++)
+  {
+    os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].x)), sizeof(double));
+    os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].y)), sizeof(double));
+    os.write(reinterpret_cast <const char*>(&(cell_vector[i].corners[j].z)), sizeof(double));
+  }
     
 }
 
 
 void VoronoiGenerator::writeDataToFile()
 {
-    boost::timer::auto_cpu_timer t;
+  boost::timer::auto_cpu_timer t;
 
-    std::ofstream file;
-    file.open("output/voronoi_data", std::ofstream::binary);
+  std::ofstream file;
+  file.open("output/voronoi_data", std::ofstream::binary);
 
-    if (!file.is_open())
-    {
-        std::cout << "Unable to write data to file.\n";
-        return;
-    }
+  if (!file.is_open())
+  {
+    std::cout << "Unable to write data to file.\n";
+    return;
+  }
 
-    for (unsigned int i = 0; i < m_size; i++)
-    {
-        writeCell(file, i);
-    }
+  for (unsigned int i = 0; i < m_size; i++)
+  {
+    writeCell(file, i);
+  }
 
-    file.close();
+  file.close();
 
-    std::cout << "Data written to: output/voronoi_data\n";
+  std::cout << "Data written to: output/voronoi_data\n";
 }
 
 
 void InitCellsTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        new(td.cells + i) VoronoiCell(td.points[i]);
-    }
+  for (unsigned int i = td.start; i <= td.end; i++)
+  {
+    new(td.cells + i) VoronoiCell(td.points[i]);
+  }
 }
 
 void InitCellsAndResizeSitesTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        new(td.cells + i) VoronoiCell(td.points[i]);
-    }
+  for (unsigned int i = td.start; i <= td.end; i++)
+  {
+    new(td.cells + i) VoronoiCell(td.points[i]);
+  }
 
-    td.sites->resize(td.size);
+  td.sites->resize(td.size);
 }
 
 template<Axis A>
 void InitSitesTask<A>::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        VoronoiSite site((td.cells)[i].position, td.cells + i, A);
-        (*(td.sites))[i] = site;
-    }
+  for (unsigned int i = td.start; i <= td.end; i++)
+  {
+    VoronoiSite site((td.cells)[i].position, td.cells + i, A);
+    (*(td.sites))[i] = site;
+  }
 }
 
 template class InitSitesTask<X>;
@@ -354,84 +429,84 @@ template class InitSitesTask<Z>;
 
 void SortPoints1Task::process()
 {
-    // sort array half
-    unsigned int size = (unsigned int)td.sites->size() / 2;
-    VoronoiSiteCompare voronoiSiteCompare;
-    std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
+  // sort array half
+  unsigned int size = (unsigned int)td.sites->size() / 2;
+  VoronoiSiteCompare voronoiSiteCompare;
+  std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
 
-    // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data(), size * sizeof(VoronoiSite));
+  // copy into scratch array
+  VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
+  memcpy(scratch, td.sites->data(), size * sizeof(VoronoiSite));
 
-    // wait (spin) for other thread
-    *(td.temps) = scratch;
-    VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps + 1;
-    while (!(*other)) {}
+  // wait (spin) for other thread
+  *(td.temps) = scratch;
+  VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps + 1;
+  while (!(*other)) {}
 
-    // merge into original array
-    VoronoiSite* scratch2 = *(td.temps + 1);
-    int a = 0; int b = 0;
-    for (unsigned int i = 0; i < size; i++)
-    {
-        if (voronoiSiteCompare(scratch[a], scratch2[b]))
-            (*td.sites)[i] = scratch[a++];
-        else
-            (*td.sites)[i] = scratch2[b++];
-    }
+  // merge into original array
+  VoronoiSite* scratch2 = *(td.temps + 1);
+  int a = 0; int b = 0;
+  for (unsigned int i = 0; i < size; i++)
+  {
+    if (voronoiSiteCompare(scratch[a], scratch2[b]))
+      (*td.sites)[i] = scratch[a++];
+    else
+      (*td.sites)[i] = scratch2[b++];
+  }
 
-    // wait (spin) for other thread
-    *(td.done) = true;
-    bool volatile * otherDone = (bool volatile *)td.done + 1;
-    while (!(*otherDone)) {}
+  // wait (spin) for other thread
+  *(td.done) = true;
+  bool volatile * otherDone = (bool volatile *)td.done + 1;
+  while (!(*otherDone)) {}
 
-    // cleanup temp memory
-    delete[] scratch;
-    delete[] td.temps;
-    delete[] td.done;
+  // cleanup temp memory
+  delete[] scratch;
+  delete[] td.temps;
+  delete[] td.done;
 }
 
 void SortPoints2Task::process()
 {
-    // sort array half
-    unsigned int size1 = (unsigned int)td.sites->size() / 2;
-    unsigned int size = (unsigned int)td.sites->size() - size1;
-    VoronoiSiteCompare voronoiSiteCompare;
-    std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
+  // sort array half
+  unsigned int size1 = (unsigned int)td.sites->size() / 2;
+  unsigned int size = (unsigned int)td.sites->size() - size1;
+  VoronoiSiteCompare voronoiSiteCompare;
+  std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
 
-    // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data() + size, size * sizeof(VoronoiSite));
+  // copy into scratch array
+  VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
+  memcpy(scratch, td.sites->data() + size, size * sizeof(VoronoiSite));
 
-    // wait (spin) for other thread
-    *(td.temps) = scratch;
-    VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps - 1;
-    while (!(*other)) {}
+  // wait (spin) for other thread
+  *(td.temps) = scratch;
+  VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps - 1;
+  while (!(*other)) {}
 
-    // merge into original array
-    VoronoiSite* scratch1 = *(td.temps - 1);
-    int a = size1 - 1; int b = size - 1;
-    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
-    {
-        if (voronoiSiteCompare(scratch1[a], scratch[b]))
-            (*td.sites)[i] = scratch[b--];
-        else
-            (*td.sites)[i] = scratch1[a--];
-    }
+  // merge into original array
+  VoronoiSite* scratch1 = *(td.temps - 1);
+  int a = size1 - 1; int b = size - 1;
+  for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
+  {
+    if (voronoiSiteCompare(scratch1[a], scratch[b]))
+      (*td.sites)[i] = scratch[b--];
+    else
+      (*td.sites)[i] = scratch1[a--];
+  }
 
-    // wait (spin) for other thread
-    *(td.done) = true;
-    bool volatile * otherDone = (bool volatile *)td.done - 1;
-    while (!(*otherDone)) {}
+  // wait (spin) for other thread
+  *(td.done) = true;
+  bool volatile * otherDone = (bool volatile *)td.done - 1;
+  while (!(*otherDone)) {}
 
-    // delete scratch
-    delete[] scratch;
+  // delete scratch
+  delete[] scratch;
 }
 
 template<Order O, Axis A>
 inline void SweepTask<O, A>::process()
 {
-    VoronoiSweeper<O, A> voronoiSweeper(td.sites, td.gen, td.taskId);
-    voronoiSweeper.sweep();
+  VoronoiSweeper<O, A> voronoiSweeper(td.sites, td.gen, td.taskId);
+  voronoiSweeper.sweep();
 }
 
 template class SweepTask<Increasing, X>;
@@ -443,13 +518,13 @@ template class SweepTask<Decreasing, Z>;
 
 void SortCellCornersTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-		if (td.cell_vector[i].corners.size() == 0)
-			continue;
-        (td.cell_vector[i]).sortCorners();
+  for (unsigned int i = td.start; i <= td.end; i++)
+  {
+    if (td.cell_vector[i].corners.size() == 0)
+      continue;
+    (td.cell_vector[i]).sortCorners();
 #ifdef CENTROID
-        (td.cell_vector[i]).computeCentroid();
+    (td.cell_vector[i]).computeCentroid();
 #endif
-    }
+  }
 }

@@ -69,7 +69,7 @@ TEST(VoronoiTests, TestVerifyResult)
         VoronoiGenerator vg;
         int count = (int)pow(10, ((w / 10) + 1));
         glm::dvec3* points = vg.genRandomInput(count);
-        vg.generate(points, count, false);
+        vg.generate(points, count, count, false);
         delete[] points;
 
         // verify that each corner is closest to its origin point
@@ -116,7 +116,7 @@ TEST(VoronoiTests, TestVerifyResult)
 TEST(VoronoiTests, TestCircumcenter)
 {
     std::vector<VoronoiSite> sites;
-    VoronoiSweeper<Increasing,X> vorI(&sites, 0);
+    VoronoiSweeper<Increasing,X> vorI(&sites, 0, 0);
     glm::dvec3 p1 = glm::normalize(glm::dvec3( 0.0, 1.0, 0.5f));
     glm::dvec3 p2 = glm::normalize(glm::dvec3( 1.0, 0.0, 0.5f));
     glm::dvec3 p3 = glm::normalize(glm::dvec3( 0.0,-1.0, 0.5f));
@@ -127,7 +127,7 @@ TEST(VoronoiTests, TestCircumcenter)
     EXPECT_DOUBLE_EQ( 0.0, cc.y );
     EXPECT_DOUBLE_EQ( 1.0, cc.z );
 
-    VoronoiSweeper<Decreasing, X> vorD(&sites, 0);
+    VoronoiSweeper<Decreasing, X> vorD(&sites, 0, 0);
     cc = vorD.circumcenter(p1, p2, p3);
 
     EXPECT_DOUBLE_EQ( 0.0, cc.x );
@@ -181,7 +181,7 @@ TEST(VoronoiTests, TestPerformance)
     for (int w = 0; w < runs; w++)
     {
         total.resume();
-        vg.generate(points, count, false);
+        vg.generate(points, count, count, false);
         total.stop();
         vg.clear();
     }

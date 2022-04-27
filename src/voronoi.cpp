@@ -9,6 +9,20 @@
 //#include <boost/chrono.hpp>
 //#include <boost/timer/timer.hpp>
 
+/*
+	This file is not compiled directly! 
+
+	It is included in other source files after
+	the template values are defined so that 
+	all variations of the templated code are
+	generated.
+
+	See:
+		voronoi_sweeper_x.cpp
+		voronoi_sweeper_y.cpp
+		voronoi_sweeper_z.cpp
+*/
+
 template <>
 VoronoiSweeper<Increasing,SWEEP_AXIS>
 ::VoronoiSweeper(
@@ -33,7 +47,8 @@ template <>
 VoronoiSweeper<Decreasing,SWEEP_AXIS>
 ::VoronoiSweeper(
 	std::vector<VoronoiSite>* sites, 
-	unsigned int gen, uint8_t threadId
+	unsigned int gen, 
+	uint8_t threadId
 	) : m_sites(sites), 
 	m_gen(gen), 
 	m_threadId(threadId)
@@ -227,6 +242,9 @@ glm::dvec3 VoronoiSweeper<Increasing,SWEEP_AXIS>
     return glm::normalize( glm::cross((i-j),(k-j)) );
 }
 
+
+
+
 template <>
 glm::dvec3 VoronoiSweeper<Decreasing,SWEEP_AXIS>
 ::circumcenter(
@@ -241,23 +259,31 @@ template <Order O, Axis A>
 void VoronoiSweeper<O,A>
 ::addCircleEventProcessSite(SkipNode<O>* node)
 {
-	glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
-							node->m_beachArc.m_site->m_position, 
-							NODE(node, next)->m_beachArc.m_site->m_position);
+	glm::dvec3 cc = circumcenter(
+		NODE(node, prev)->m_beachArc.m_site->m_position,
+		node->m_beachArc.m_site->m_position, 
+		NODE(node, next)->m_beachArc.m_site->m_position);
 
-	double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
+	double small_polar = acos(
+		glm::dot(cc, node->m_beachArc.m_site->m_position));
 	double large_polar = acos(cc.COMPONENT);
 
 	addCircleEvent(node, large_polar, small_polar, cc);
 }
 
+
+
+
+
+
 template <>
 void VoronoiSweeper<Increasing,SWEEP_AXIS>
 ::addCircleEventProcessCircle(SkipNode<Increasing>* node)
 {
-	glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
-									node->m_beachArc.m_site->m_position,
-									NODE(node, next)->m_beachArc.m_site->m_position);
+	glm::dvec3 cc = circumcenter(
+		NODE(node, prev)->m_beachArc.m_site->m_position,
+		node->m_beachArc.m_site->m_position,
+		NODE(node, next)->m_beachArc.m_site->m_position);
 
 	double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
 	double large_polar = acos(cc.COMPONENT);
@@ -270,9 +296,10 @@ template <>
 void VoronoiSweeper<Decreasing,SWEEP_AXIS>
 ::addCircleEventProcessCircle(SkipNode<Decreasing>* node)
 {
-	glm::dvec3 cc = circumcenter(NODE(node, prev)->m_beachArc.m_site->m_position,
-									node->m_beachArc.m_site->m_position,
-									NODE(node, next)->m_beachArc.m_site->m_position);
+	glm::dvec3 cc = circumcenter(
+		NODE(node, prev)->m_beachArc.m_site->m_position,
+		node->m_beachArc.m_site->m_position,
+		NODE(node, next)->m_beachArc.m_site->m_position);
 
 	double small_polar = acos(glm::dot(cc, node->m_beachArc.m_site->m_position));
 	double large_polar = acos(cc.COMPONENT);
@@ -321,6 +348,10 @@ void VoronoiSweeper<O,A>
 	}
 }
 
-// forward declare template types so compiler generates code to link against
+// Forward declare template types so compiler generates code to link against
+// SWEEP_AXIS is defined before including this file in: 
+//		voronoi_sweeper_x.cpp
+//		voronoi_sweeper_y.cpp
+//		voronoi_sweeper_z.cpp
 template class VoronoiSweeper<Increasing,SWEEP_AXIS>;
 template class VoronoiSweeper<Decreasing,SWEEP_AXIS>;
