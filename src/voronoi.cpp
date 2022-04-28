@@ -1,3 +1,5 @@
+#if defined(SWEEP_AXIS) && defined(COMPONENT)
+
 #include "voronoi.h"
 #include "globals.h"
 #include "../glm/glm.hpp"
@@ -10,14 +12,7 @@
 //#include <boost/timer/timer.hpp>
 
 /*
-	This file is not compiled directly! 
-
-	It is included in other source files after
-	the template values are defined so that 
-	all variations of the templated code are
-	generated.
-
-	See:
+Included by:
 		voronoi_sweeper_x.cpp
 		voronoi_sweeper_y.cpp
 		voronoi_sweeper_z.cpp
@@ -74,7 +69,6 @@ template <Order O, Axis A>
 inline SkipNode<O>* VoronoiSweeper<O, A>
 ::initBlock()
 {
-	//CircleEvent<O>* circle = &(m_nextBlock->circleEvent);
 	new(&(m_nextBlock->priQueueNode)) PriQueueNode<O>(block);
 	new(&(m_nextBlock->skipNode)) SkipNode<O>(block);
 
@@ -242,9 +236,6 @@ glm::dvec3 VoronoiSweeper<Increasing,SWEEP_AXIS>
     return glm::normalize( glm::cross((i-j),(k-j)) );
 }
 
-
-
-
 template <>
 glm::dvec3 VoronoiSweeper<Decreasing,SWEEP_AXIS>
 ::circumcenter(
@@ -270,11 +261,6 @@ void VoronoiSweeper<O,A>
 
 	addCircleEvent(node, large_polar, small_polar, cc);
 }
-
-
-
-
-
 
 template <>
 void VoronoiSweeper<Increasing,SWEEP_AXIS>
@@ -329,9 +315,9 @@ inline void VoronoiSweeper<O,A>
 	double small_polar, 
 	const glm::dvec3 & cc)
 {
-	//if (onOtherSide(cc)) return;
+  new(getCircleEventFromSkipNode(node)) CircleEvent<O>(
+		large_polar, small_polar, cc);
 
-  new(getCircleEventFromSkipNode(node)) CircleEvent<O>(large_polar, small_polar, cc);
 	node->m_beachArc.m_eventValid = true;
   m_circles.push(getPriQueueNodeFromSkipNode(node));
 }
@@ -348,10 +334,9 @@ void VoronoiSweeper<O,A>
 	}
 }
 
-// Forward declare template types so compiler generates code to link against
-// SWEEP_AXIS is defined before including this file in: 
-//		voronoi_sweeper_x.cpp
-//		voronoi_sweeper_y.cpp
-//		voronoi_sweeper_z.cpp
+// Forward declare template types so compiler generates 
+// code to link against
 template class VoronoiSweeper<Increasing,SWEEP_AXIS>;
 template class VoronoiSweeper<Decreasing,SWEEP_AXIS>;
+
+#endif
