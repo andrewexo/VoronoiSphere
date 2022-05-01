@@ -18,7 +18,7 @@ endif
 TEST_LINKS = -lgtest -lpthread
 
 
-VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper_x.o voronoi_sweeper_y.o voronoi_sweeper_z.o
+VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o
 TEST_OBJS = tests.o
 
 
@@ -36,14 +36,8 @@ vg_main.o: vg_main.cpp
 voronoi_event.o: src/voronoi_event.h src/voronoi_event.cpp
 	$(COMPILER) src/voronoi_event.cpp $(FLAGS) -c
 
-voronoi_sweeper_x.o: src/voronoi_sweeper_x.cpp src/voronoi_event_compare.h
-	$(COMPILER) src/voronoi_sweeper_x.cpp $(FLAGS) -c
-
-voronoi_sweeper_y.o: src/voronoi_sweeper_y.cpp src/voronoi_event_compare.h
-	$(COMPILER) src/voronoi_sweeper_y.cpp $(FLAGS) -c
-
-voronoi_sweeper_z.o: src/voronoi_sweeper_z.cpp src/voronoi_event_compare.h
-	$(COMPILER) src/voronoi_sweeper_z.cpp $(FLAGS) -c
+voronoi_sweeper.o: src/voronoi_sweeper.cpp src/voronoi_event_compare.h
+	$(COMPILER) src/voronoi_sweeper.cpp $(FLAGS) -c
 
 beachline.o: src/beachline.h src/beachline.cpp
 	$(COMPILER) src/beachline.cpp $(FLAGS) -c
