@@ -12,6 +12,33 @@
 #include "memblock.h"
 #include "globals.h"
 
+template <Order O>
+const double sweeplineStart;
+
+template <Axis A>
+class OrientedDvec3
+{
+  public:
+    glm::dvec3 vec;
+    void operator=(glm::dvec3 vec) { this->vec = vec; };
+    inline glm::highp_float getComponent() const;
+};
+
+template <Order O>
+class OrderedIterator 
+{
+  unsigned int index;
+  const unsigned int maxSize;
+
+
+  public:
+    OrderedIterator(unsigned int maxSize);
+    unsigned int operator++(int);
+    inline bool isInRange();
+    inline bool isAtEnd();
+    inline unsigned int getIndex() { return index; };
+};
+
 template <Order O, Axis A>
 class VoronoiSweeper
 {
@@ -34,7 +61,7 @@ class VoronoiSweeper
     PriQueue<O> m_circles;
 
     std::vector<VoronoiSite>* m_sites;
-    unsigned int m_next;
+    OrderedIterator<O> m_next;
 
     unsigned int m_gen;
     uint8_t m_threadId;
@@ -46,7 +73,9 @@ class VoronoiSweeper
     void processSiteEvent(VoronoiSite* site);
     void processCircleEvent(CircleEvent<O>* circle);
 
-    bool onOtherSide(const glm::dvec3 & cc);
+    bool onOtherSide(const OrientedDvec3<A> & cc);
+
+    bool eventIsUpcoming(double small_polar, double large_polar);
 
     void addCircleEventProcessSite(SkipNode<O>* node);
     void addCircleEventProcessCircle(SkipNode<O>* node);

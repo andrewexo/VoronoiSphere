@@ -59,13 +59,13 @@ template <> struct VoronoiSiteEventCompare<Increasing>
 
 template <> struct VoronoiSiteEventCompare<Decreasing>
 {
-    inline bool operator()(VoronoiSite* lhs, CircleEvent<Decreasing>* rhs)	// returns true if lhs > rhs
+    inline bool operator()(VoronoiSite* lhs, CircleEvent<Decreasing>* rhs)	// returns true if rhs > lhs
     {
         double polarDiff = lhs->m_polar - (rhs->polar - rhs->polar_small);
         if (polarDiff == 0.0)
             return false;
         else
-            return (polarDiff > 0.0);
+            return (polarDiff < 0.0);
     }
 };
 

@@ -45,7 +45,8 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
     }
     else
     {
-        if (comp(getCircleEventFromPriQueueNode(head), getCircleEventFromPriQueueNode(node))) // insert at front
+        if (comp(getCircleEventFromPriQueueNode(head), 
+            getCircleEventFromPriQueueNode(node))) // insert at front
         {
             node->next = head->index;
             head->prev = node->index;
@@ -67,7 +68,9 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         while (true)
         {
             PriQueueNode<O>* next = NODE(curr, skips[skip_level]);
-            if (curr->skips[skip_level] != -1 && comp(getCircleEventFromPriQueueNode(node), getCircleEventFromPriQueueNode(next)))
+            if (curr->skips[skip_level] != -1 && 
+                comp(getCircleEventFromPriQueueNode(node), 
+                getCircleEventFromPriQueueNode(next)))
             {
                 curr = next;
             }
@@ -79,7 +82,9 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         }
 
         // continue search on the linked list level
-        while (curr->next != -1 && comp(getCircleEventFromPriQueueNode(node), getCircleEventFromPriQueueNode(NODE(curr, next))))
+        while (curr->next != -1 && 
+               comp(getCircleEventFromPriQueueNode(node),
+               getCircleEventFromPriQueueNode(NODE(curr, next))))
         {
             curr = NODE(curr, next);
         }
@@ -87,7 +92,8 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         // insert after curr
         node->next = curr->next;
         node->prev = curr->index;
-        if (curr->next != -1) NODE(curr, next)->prev = node->index;
+        if (curr->next != -1)
+            NODE(curr, next)->prev = node->index;
         curr->next = node->index;
 
         addSkips(node, nodes);

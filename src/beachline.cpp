@@ -60,12 +60,21 @@ SkipNode<O>::~SkipNode()
 }
 
 template <>
-double SkipNode<Increasing>::getRangeEnd(const SweepLine & sl, double shift, SkipNode<Increasing>* other)
+double SkipNode<Increasing>
+::getRangeEnd(const SweepLine & sl,
+              double shift,
+              SkipNode<Increasing>* other)
 {
     if (sl.m_polar > sweepline_pos)
     {
         ALIGN(16) double ends[2];
-        intersect2(m_beachArc.m_site, NODE(this,next)->m_beachArc.m_site, other->m_beachArc.m_site, NODE(other,next)->m_beachArc.m_site, sl, shift, ends);
+        intersect2(m_beachArc.m_site,
+                   NODE(this,next)->m_beachArc.m_site,
+                   other->m_beachArc.m_site,
+                   NODE(other,next)->m_beachArc.m_site,
+                   sl,
+                   shift,
+                   ends);
 
         range_end = ends[1];
         other->range_end = ends[0];
@@ -78,12 +87,21 @@ double SkipNode<Increasing>::getRangeEnd(const SweepLine & sl, double shift, Ski
 }
 
 template <>
-double SkipNode<Decreasing>::getRangeEnd(const SweepLine & sl, double shift, SkipNode<Decreasing>* other)
+double SkipNode<Decreasing>
+::getRangeEnd(const SweepLine & sl,
+              double shift,
+              SkipNode<Decreasing>* other)
 {
     if (sl.m_polar < sweepline_pos)
     {
         ALIGN(16) double ends[2];
-        intersect2(NODE(other,next)->m_beachArc.m_site, other->m_beachArc.m_site, NODE(this,next)->m_beachArc.m_site, m_beachArc.m_site, sl, shift, ends);
+        intersect2(NODE(other,next)->m_beachArc.m_site,
+                        other->m_beachArc.m_site,
+                        NODE(this,next)->m_beachArc.m_site,
+                        m_beachArc.m_site,
+                        sl,
+                        shift,
+                        ends);
 
         range_end = ends[0];
         other->range_end = ends[1];
@@ -409,7 +427,7 @@ inline int log2(int n)
     const unsigned int S[] = {1, 2, 4, 8, 16};
 
     register unsigned int r = 0; // result of log2(v) will go here
-    for (int i = 3; i >= 0; i--) // unroll for speed...
+    for (int i = 3; i >= 0; i--) // unroll for speed (if compiler doesn't already)
     {
       if (n & b[i])
       {

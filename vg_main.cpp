@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     glm::dvec3* points = vg.genRandomInput(count);
 
 	auto start = std::chrono::high_resolution_clock::now();
-    vg.generate(points, count, gen, true);
+    vg.generate(points, count, gen, false);
 	double elapsed = std::chrono::duration_cast<std::chrono::microseconds>
         (std::chrono::high_resolution_clock::now() - start).count();
 	std::cout << elapsed / 1000.0 << " milliseconds\n";
