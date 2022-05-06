@@ -68,6 +68,7 @@ TEST(VoronoiTests, TestVerifyResult)
     {
         VoronoiGenerator vg;
         int count = (int)pow(10, ((w / 10) + 1));
+        //std::cout << count << "\n";
         glm::dvec3* points = vg.genRandomInput(count);
         vg.generate(points, count, count, false);
         delete[] points;

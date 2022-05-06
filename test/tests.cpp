@@ -5,7 +5,7 @@
 #include "../glm/glm.hpp"
 
 #include "voronoi_tests.cpp"
-//#include "priqueue_tests.cpp"
+#include "priqueue_tests.cpp"
 
 int main(int argc, char **argv)
 {
