@@ -27,8 +27,8 @@ class OrientedDvec3
 template <Order O>
 class OrderedIterator 
 {
-  unsigned int index;
-  const unsigned int maxSize;
+  int index;
+  const int maxSize;
 
 
   public:

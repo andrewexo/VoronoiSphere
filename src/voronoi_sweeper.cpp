@@ -84,8 +84,9 @@ VoronoiSweeper<O, A>
 	m_threadId(threadId)
 {
 	m_sweeplineLarge = sweeplineStart<O>;
-	unsigned int count = std::min((int)sites->size(), (int)(m_gen * 2));
 	m_sweeplineSmall = 0.0;
+
+	unsigned int count = std::min((int)sites->size(), (int)(m_gen * 2));
 	auto size = (2 * count - 2) * sizeof(MemBlock<O>);
 	m_nextBlock = m_memBlocks = (MemBlock<O>*)malloc( size );
 	block = 0;
