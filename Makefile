@@ -1,16 +1,18 @@
 UNAME := $(shell uname)
 
+DEBUG_OR_OPT := -O3# -g
+
 ifeq ($(UNAME), Linux)
-COMPILER = g++-7
-LINKER = g++-7
-FLAGS = -g -Wall -std=c++14 -O3 -msse4.2 -Igoogletest/include/ -Iboost_1_62_0/
+COMPILER = g++-9
+LINKER = g++-9
+FLAGS = -Wall -std=c++14 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_62_0/
 LINKS = -Lboost_1_62_0/stage/lib -lboost_timer -lboost_chrono -lboost_system -lpthread
 endif
 
 ifeq ($(UNAME), Darwin)
 COMPILER = g++
 LINKER = g++
-FLAGS = -g -Wall -std=c++14 -O3 -msse4.2 -Igoogletest/include/ -Iboost_1_76_0/ -Wno-deprecated-register -Wno-shift-op-parentheses
+FLAGS = -Wall -std=c++14 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_76_0/ -Wno-deprecated-register -Wno-shift-op-parentheses
 LINKS = -Lusr/local/Cellar/boost/1.76.0/lib -lboost_timer-mt -lboost_chrono-mt -lboost_system-mt -lpthread
 endif
 
@@ -18,7 +20,7 @@ endif
 TEST_LINKS = -lgtest -lpthread
 
 
-VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o
+VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o buckets.o
 TEST_OBJS = tests.o
 
 
@@ -44,6 +46,9 @@ beachline.o: src/beachline.h src/beachline.cpp
 
 priqueue.o: src/priqueue.h src/priqueue.cpp src/voronoi_event_compare.h
 	$(COMPILER) src/priqueue.cpp $(FLAGS) -c
+
+buckets.o: src/buckets.h src/buckets.cpp
+	$(COMPILER) src/buckets.cpp $(FLAGS) -c
 
 voronoi_cell.o: src/voronoi_cell.h src/voronoi_cell.cpp
 	$(COMPILER) src/voronoi_cell.cpp $(FLAGS) -c

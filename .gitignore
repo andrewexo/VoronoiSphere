@@ -9,5 +9,8 @@ v_sphere_timings.txt
 /.hg
 /*.o
 /vg
+/tests
 
 /output/voronoi_data
+/output/voronoi_data.obj
+.vscode/settings.json

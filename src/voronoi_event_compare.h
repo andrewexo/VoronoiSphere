@@ -9,7 +9,8 @@ template <Order O> struct VoronoiEventCompare;
 
 template <> struct VoronoiEventCompare<Increasing>
 {
-    inline bool operator()(CircleEvent<Increasing>* lhs, CircleEvent<Increasing>* rhs)	// returns true if lhs > rhs
+    // returns true if lhs > rhs
+    inline bool operator()(CircleEvent<Increasing>* lhs, CircleEvent<Increasing>* rhs)
     {
         double polarDiff = (lhs->polar - rhs->polar) + (lhs->polar_small - rhs->polar_small);
         if (polarDiff == 0.0)
@@ -20,8 +21,9 @@ template <> struct VoronoiEventCompare<Increasing>
 };
 
 template <> struct VoronoiEventCompare<Decreasing>
-{
-    inline bool operator()(CircleEvent<Decreasing>* lhs, CircleEvent<Decreasing>* rhs)	// returns true if rhs > lhs
+{   
+    // returns true if rhs > lhs
+    inline bool operator()(CircleEvent<Decreasing>* lhs, CircleEvent<Decreasing>* rhs)
     {
         double polarDiff = (rhs->polar - lhs->polar) - (rhs->polar_small - lhs->polar_small);
         if (polarDiff == 0.0)
@@ -33,7 +35,8 @@ template <> struct VoronoiEventCompare<Decreasing>
 
 struct VoronoiSiteCompare
 {
-    inline bool operator()(const VoronoiSite & lhs, const VoronoiSite & rhs)	// returns true if rhs > lhs
+    // returns true if rhs > lhs
+    inline bool operator()(const VoronoiSite & lhs, const VoronoiSite & rhs)
     {
         double polarDiff = rhs.m_polar - lhs.m_polar;
         if (polarDiff == 0.0)
@@ -47,7 +50,8 @@ template <Order O> struct VoronoiSiteEventCompare;
 
 template <> struct VoronoiSiteEventCompare<Increasing>
 {
-    inline bool operator()(VoronoiSite* lhs, CircleEvent<Increasing>* rhs)	// returns true if lhs > rhs
+    // returns true if lhs > rhs
+    inline bool operator()(VoronoiSite* lhs, CircleEvent<Increasing>* rhs)
     {
         double polarDiff = lhs->m_polar - (rhs->polar + rhs->polar_small);
         if (polarDiff == 0.0)
@@ -59,7 +63,8 @@ template <> struct VoronoiSiteEventCompare<Increasing>
 
 template <> struct VoronoiSiteEventCompare<Decreasing>
 {
-    inline bool operator()(VoronoiSite* lhs, CircleEvent<Decreasing>* rhs)	// returns true if rhs > lhs
+    // returns true if rhs > lhs
+    inline bool operator()(VoronoiSite* lhs, CircleEvent<Decreasing>* rhs)
     {
         double polarDiff = lhs->m_polar - (rhs->polar - rhs->polar_small);
         if (polarDiff == 0.0)

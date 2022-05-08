@@ -7,7 +7,7 @@
 
 #include "gtest/gtest_prod.h"
 
-#define SKIP_DEPTH 16
+#define SKIP_DEPTH 8
 
 template <Order O>
 class PriQueueNode

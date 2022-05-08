@@ -64,23 +64,22 @@ TEST(VoronoiTests, TestIntersectDegenerateParabola)
 
 TEST(VoronoiTests, TestVerifyResult)
 {
-    for (int w = 0; w < 40; w++)
+    for (int w = 0; w < 12; w++)
     {
         VoronoiGenerator vg;
-        int count = (int)pow(10, ((w / 10) + 1));
-        //std::cout << count << "\n";
+        int count = (int)pow(10, ((w / 3) + 1));
         glm::dvec3* points = vg.genRandomInput(count);
         vg.generate(points, count, count, false);
         delete[] points;
 
         // verify that each corner is closest to its origin point
-        unsigned int corner_sum = 0;
+        //unsigned int corner_sum = 0;
         unsigned int incorrect = 0;
         unsigned int corner_count_incorrect = 0;
         for (unsigned int i = 0; i < vg.m_size; ++i)
         {
             VoronoiCell* b = vg.cell_vector + i;
-            corner_sum += (unsigned int)b->corners.size();
+            //corner_sum += (unsigned int)b->corners.size();
 
             for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
             {
@@ -160,7 +159,7 @@ TEST(VoronoiTests, TestCompare)
     EXPECT_TRUE( vecD(&ce1,&ce4) );
     EXPECT_TRUE( vsc(v1,v2) );
     EXPECT_TRUE( vsecI(&v2,&ce2) );
-    EXPECT_TRUE( vsecD(&v2,&ce4) );
+    EXPECT_FALSE( vsecD(&v2,&ce1) );
 
     EXPECT_FALSE( vecI(&ce3, &ce3) );
     EXPECT_FALSE( vecD(&ce1, &ce1) );
@@ -174,18 +173,20 @@ TEST(VoronoiTests, TestCompare)
 
 TEST(VoronoiTests, TestPerformance)
 {
-    VoronoiGenerator vg;
-    int count = 1000000;
-    glm::dvec3* points = vg.genRandomInput(count);
     boost::timer::cpu_timer total;
     int runs = 16;
     for (int w = 0; w < runs; w++)
     {
+        VoronoiGenerator vg;
+        int count = 100000;
+        glm::dvec3* points = vg.genRandomInput(count);
+
         total.resume();
         vg.generate(points, count, count, false);
         total.stop();
         vg.clear();
+
+        delete[] points;
     }
-    delete[] points;
     std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
 }

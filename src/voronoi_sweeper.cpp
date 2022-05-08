@@ -1,6 +1,7 @@
 #include "voronoi.h"
 #include "globals.h"
 #include "../glm/glm.hpp"
+#include <iostream>
 
 template<> double sweeplineStart<Increasing> = 0.0;
 template<> double sweeplineStart<Decreasing> = M_PI;
@@ -55,21 +56,14 @@ template <Order O>
 inline bool OrderedIterator<O>
 ::isInRange()
 {
-	return index >= 0 && index < maxSize;
+	return index < maxSize;
 }
 
-template <>
-inline bool OrderedIterator<Increasing>
+template <Order O>
+inline bool OrderedIterator<O>
 ::isAtEnd()
 {
-	return index == maxSize;
-}
-
-template <>
-inline bool OrderedIterator<Decreasing>
-::isAtEnd()
-{
-	return index < 0;
+	return index >= maxSize;
 }
 
 template <Order O, Axis A>
@@ -174,7 +168,7 @@ inline void VoronoiSweeper<O,A>
 		large_polar, small_polar, cc);
 
 	node->m_beachArc.m_eventValid = true;
-  m_circles.push(getPriQueueNodeFromSkipNode(node));
+  m_buckets.push(getPriQueueNodeFromSkipNode(node));
 }
 
 template <Order O, Axis A>
@@ -183,7 +177,7 @@ void VoronoiSweeper<O,A>
 {
 	if (arc->m_eventValid)
 	{
-		m_circles.erase(getPriQueueNodeFromBeachArc(arc));
+		m_buckets.erase(getPriQueueNodeFromBeachArc(arc));
 		getPriQueueNodeFromBeachArc(arc)->clear();
 		arc->m_eventValid = false;
 	}
@@ -239,27 +233,27 @@ void VoronoiSweeper<O,A>
 
 	// pop events from sites and circles in order of O(template Order) polar angle
 	while ( completedCells < m_gen && 
-					(m_next.isInRange() || !m_circles.empty()) )
+					(m_next.isInRange() || !m_buckets.empty()) )
 	{
-		if (m_circles.empty()) // No circle events so we process next site event
+		if (m_buckets.empty()) // No circle events so we process next site event
 		{
 			VoronoiSite* next_site = &(*m_sites)[m_next++];
 			processSiteEvent(next_site);
 		}
 		else if (m_next.isAtEnd()) // No site events so we process next circle event
 		{
-			CircleEvent<O>* next_circle = m_circles.top();
-			m_circles.pop();
+			CircleEvent<O>* next_circle = m_buckets.top();
+			m_buckets.pop();
 			processCircleEvent(next_circle);
 		}
 		else // Get next site and circle events, then process whichever is closer
 		{
 			VoronoiSite* next_site = &(*m_sites)[m_next.getIndex()];
-			CircleEvent<O>* next_circle = m_circles.top();
+			CircleEvent<O>* next_circle = m_buckets.top();
 
 			if (voronoi_site_event_comp(next_site, next_circle))
 			{
-				m_circles.pop();
+				m_buckets.pop();
 				processCircleEvent(next_circle);
 			}
 			else

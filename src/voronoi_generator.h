@@ -8,10 +8,11 @@
 #include <vector>
 #include <atomic>
 #include <thread>
+#include <future>
 
 #include "gtest/gtest_prod.h"
 
-#define CENTROID
+//#define CENTROID
 
 class VoronoiGenerator
 {
@@ -43,7 +44,9 @@ class VoronoiGenerator
         std::vector<VoronoiSite> m_sitesZ;
 
         void writeDataToFile();
+        void writeDataToOBJ();
         inline void writeCell(std::ofstream & os, int i);
+        inline void writeCellOBJ(std::ofstream & os, int i);
 
         void buildTaskGraph(TaskGraph* tg, glm::dvec3* points);
 
@@ -98,8 +101,10 @@ struct TaskDataSites
 struct TaskDataDualSort
 {
     std::vector<VoronoiSite>* sites;
-    VoronoiSite** temps;
-    bool* done;
+    std::promise<VoronoiSite*>* p_temps;
+    std::promise<bool>* p_done;
+    std::future<VoronoiSite*> f_temps;
+    std::future<bool> f_done;
 };
 
 struct TaskDataSweep

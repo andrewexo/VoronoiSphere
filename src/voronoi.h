@@ -9,6 +9,7 @@
 #include "beachline.h"
 #include "voronoi_event_compare.h"
 #include "priqueue.h"
+#include "buckets.h"
 #include "memblock.h"
 #include "globals.h"
 
@@ -27,8 +28,8 @@ class OrientedDvec3
 template <Order O>
 class OrderedIterator 
 {
-  int index;
-  const int maxSize;
+  unsigned int index;
+  const unsigned int maxSize;
 
 
   public:
@@ -58,7 +59,8 @@ class VoronoiSweeper
     double m_sweeplineSmall;
 
     BeachLine<O> m_beachLine;
-    PriQueue<O> m_circles;
+    Buckets<O> m_buckets;
+    //PriQueue<O> m_circles;
 
     std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;

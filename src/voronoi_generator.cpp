@@ -40,7 +40,7 @@ glm::dvec3 * VoronoiGenerator::genRandomInput(int count)
 void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool writeToFile)
 {
   {
-    boost::timer::auto_cpu_timer total;
+    //boost::timer::auto_cpu_timer total;
 
     m_size = count;
     m_gen = gen;
@@ -50,10 +50,10 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
     taskGraph.processTasks(6);
     completedCells = 0;
 
-    std::cout << "total:\n";
+    //std::cout << "total:\n";
   }
 
-  if (writeToFile) writeDataToFile();
+  if (writeToFile) writeDataToOBJ();
 }
 
 inline void VoronoiGenerator
@@ -224,19 +224,34 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
   SortPoints1Task* sp5 = new SortPoints1Task;
   SortPoints2Task* sp6 = new SortPoints2Task;
 
-  VoronoiSite** temps1 = new VoronoiSite*[2]; temps1[0] = temps1[1] = NULL;
-  VoronoiSite** temps2 = new VoronoiSite*[2]; temps2[0] = temps2[1] = NULL;
-  VoronoiSite** temps3 = new VoronoiSite*[2]; temps3[0] = temps3[1] = NULL;
-  bool* done1 = new bool[2]; done1[0] = done1[1] = false;
-  bool* done2 = new bool[2]; done2[0] = done2[1] = false;
-  bool* done3 = new bool[2]; done3[0] = done3[1] = false;
+  std::promise<VoronoiSite*>* p_temps1 = new std::promise<VoronoiSite*>[2];
+  std::promise<VoronoiSite*>* p_temps2 = new std::promise<VoronoiSite*>[2];
+  std::promise<VoronoiSite*>* p_temps3 = new std::promise<VoronoiSite*>[2];
+  
+  std::promise<bool>* p_done1 = new std::promise<bool>[2];
+  std::promise<bool>* p_done2 = new std::promise<bool>[2];
+  std::promise<bool>* p_done3 = new std::promise<bool>[2];
 
-  sp1->td = { &m_sitesX, temps1, done1 };
-  sp2->td = { &m_sitesX, temps1 + 1, done1 + 1 };
-  sp3->td = { &m_sitesY, temps2, done2 };
-  sp4->td = { &m_sitesY, temps2 + 1, done2 + 1 };
-  sp5->td = { &m_sitesZ, temps3, done3 };
-  sp6->td = { &m_sitesZ, temps3 + 1, done3 + 1 };
+  sp1->td = { &m_sitesX, p_temps1, p_done1, 
+                         (p_temps1+1)->get_future(), 
+                         (p_done1+1)->get_future() };
+  sp2->td = { &m_sitesX, p_temps1 + 1, p_done1 + 1,             
+                         p_temps1->get_future(), 
+                         p_done1->get_future() };
+
+  sp3->td = { &m_sitesY, p_temps2, p_done2, 
+                         (p_temps2+1)->get_future(), 
+                         (p_done2+1)->get_future() };
+  sp4->td = { &m_sitesY, p_temps2 + 1, p_done2 + 1,                          
+                         p_temps2->get_future(), 
+                         p_done2->get_future() };
+
+  sp5->td = { &m_sitesZ, p_temps3, p_done3, 
+                         (p_temps3+1)->get_future(), 
+                         (p_done3+1)->get_future() };
+  sp6->td = { &m_sitesZ, p_temps3 + 1, p_done3 + 1,                          
+                         p_temps3->get_future(), 
+                         p_done3->get_future() };
 
   tg->addTask(sp1);
   tg->addTask(sp2);
@@ -394,6 +409,60 @@ void VoronoiGenerator::writeDataToFile()
   std::cout << "Data written to: output/voronoi_data\n";
 }
 
+void VoronoiGenerator::writeDataToOBJ()
+{
+  boost::timer::auto_cpu_timer t;
+
+  std::ofstream file;
+  file.open("output/voronoi_data.obj", std::ofstream::binary);
+
+  if (!file.is_open())
+  {
+    std::cout << "Unable to write data to file.\n";
+    return;
+  }
+
+  for (unsigned int i = 0; i < m_size; i++)
+  {
+    writeCellOBJ(file, i);
+  }
+
+  file.close();
+
+  std::cout << "Data written to: output/voronoi_data\n";
+}
+
+inline void VoronoiGenerator::writeCellOBJ(std::ofstream & os, int i)
+{
+  if (cell_vector[i].m_arcs != 0)
+    return;
+
+  int numCorners = (int)cell_vector[i].corners.size();
+
+  if (numCorners < 3)
+    return;
+
+  std::string idx = "f ";
+  for (int j = 0; j < numCorners; j++)
+  {
+    os.write("v ", 2);
+
+    std::string x = std::to_string(cell_vector[i].corners[j].x); x += " ";
+    std::string y = std::to_string(cell_vector[i].corners[j].y); y += " ";
+    std::string z = std::to_string(cell_vector[i].corners[j].z); z += "\n";
+
+    os.write(x.c_str(), x.length());
+    os.write(y.c_str(), y.length());
+    os.write(z.c_str(), z.length());
+
+    idx += std::to_string(j-numCorners) + " ";
+  }
+
+  // write face
+  idx += "\n";
+  os.write(idx.c_str(), idx.length());   
+}
+
 
 void InitCellsTask::process()
 {
@@ -438,13 +507,11 @@ void SortPoints1Task::process()
   VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
   memcpy(scratch, td.sites->data(), size * sizeof(VoronoiSite));
 
-  // wait (spin) for other thread
-  *(td.temps) = scratch;
-  VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps + 1;
-  while (!(*other)) {}
+  // send data to other thread
+  td.p_temps->set_value(scratch);
+  VoronoiSite* scratch2 = td.f_temps.get();
 
   // merge into original array
-  VoronoiSite* scratch2 = *(td.temps + 1);
   int a = 0; int b = 0;
   for (unsigned int i = 0; i < size; i++)
   {
@@ -454,15 +521,14 @@ void SortPoints1Task::process()
       (*td.sites)[i] = scratch2[b++];
   }
 
-  // wait (spin) for other thread
-  *(td.done) = true;
-  bool volatile * otherDone = (bool volatile *)td.done + 1;
-  while (!(*otherDone)) {}
+  // wait for other thread
+  td.p_done->set_value(true);
+  bool ready = td.f_done.get();
 
   // cleanup temp memory
   delete[] scratch;
-  delete[] td.temps;
-  delete[] td.done;
+  delete[] td.p_temps;
+  delete[] td.p_done;
 }
 
 void SortPoints2Task::process()
@@ -477,13 +543,11 @@ void SortPoints2Task::process()
   VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
   memcpy(scratch, td.sites->data() + size, size * sizeof(VoronoiSite));
 
-  // wait (spin) for other thread
-  *(td.temps) = scratch;
-  VoronoiSite* volatile * other = (VoronoiSite* volatile *)td.temps - 1;
-  while (!(*other)) {}
+  // send data to other thread
+  td.p_temps->set_value(scratch);
+  VoronoiSite* scratch1 = td.f_temps.get();
 
   // merge into original array
-  VoronoiSite* scratch1 = *(td.temps - 1);
   int a = size1 - 1; int b = size - 1;
   for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
   {
@@ -493,10 +557,9 @@ void SortPoints2Task::process()
       (*td.sites)[i] = scratch1[a--];
   }
 
-  // wait (spin) for other thread
-  *(td.done) = true;
-  bool volatile * otherDone = (bool volatile *)td.done - 1;
-  while (!(*otherDone)) {}
+  // wait for other thread
+  td.p_done->set_value(true);
+  bool ready = td.f_done.get();
 
   // delete scratch
   delete[] scratch;
@@ -507,6 +570,7 @@ inline void SweepTask<O, A>::process()
 {
   VoronoiSweeper<O, A> voronoiSweeper(td.sites, td.gen, td.taskId);
   voronoiSweeper.sweep();
+  // std::cout << "Sweeper done\n";
 }
 
 template class SweepTask<Increasing, X>;
