@@ -424,7 +424,7 @@ inline int log2(int n)
     const unsigned int b[] = {0x2, 0xC, 0xF0, 0xFF00, 0xFFFF0000};
     const unsigned int S[] = {1, 2, 4, 8, 16};
 
-    register unsigned int r = 0; // result of log2(v) will go here
+    unsigned int r = 0; // result of log2(v) will go here
     for (int i = 3; i >= 0; i--) // unroll for speed (if compiler doesn't already)
     {
       if (n & b[i])

@@ -5,14 +5,14 @@ DEBUG_OR_OPT := -O3 # -g
 ifeq ($(UNAME), Linux)
 COMPILER = g++
 LINKER = g++
-FLAGS = -Wall -std=c++14 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_62_0/
+FLAGS = -Wall -std=c++17 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_62_0/ -Wno-register -Wno-class-memaccess -Wno-unused-variable
 LINKS = -Lboost_1_62_0/stage/lib -lboost_timer -lboost_chrono -lboost_system -lpthread
 endif
 
 ifeq ($(UNAME), Darwin)
 COMPILER = g++
 LINKER = g++
-FLAGS = -Wall -std=c++14 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_76_0/ -Wno-deprecated-register -Wno-shift-op-parentheses
+FLAGS = -Wall -std=c++17 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_76_0/ -Wno-class-memaccess -Wno-unused-variable -Wno-shift-op-parentheses
 LINKS = -Lusr/local/Cellar/boost/1.76.0/lib -lboost_timer-mt -lboost_chrono-mt -lboost_system-mt -lpthread
 endif
 
