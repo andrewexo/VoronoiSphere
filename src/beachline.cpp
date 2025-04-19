@@ -26,8 +26,6 @@ inline void SkipNode<O>::init(int i)
     memset(p_skips, -1, sizeof(int) * SKIP_DEPTH_B);
     prev = next = -1;
     range_end = 0.0;
-
-    m_beachArc.m_eventValid = false;
 }
 
 template <Order O>

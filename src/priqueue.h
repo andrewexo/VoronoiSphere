@@ -14,15 +14,14 @@ class PriQueueNode
 {
     public:
 
-        PriQueueNode(size_t i);
+        PriQueueNode(CircleEvent<O>* event);
+        CircleEvent<O>* event;
 
-        size_t index;
+        PriQueueNode<O>* skips[SKIP_DEPTH];
+        PriQueueNode<O>* next;
 
-        size_t skips[SKIP_DEPTH];
-        size_t next;
-
-        size_t prev_skips[SKIP_DEPTH];
-        size_t prev;
+        PriQueueNode<O>* prev_skips[SKIP_DEPTH];
+        PriQueueNode<O>* prev;
 
         void clear();
 };

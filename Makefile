@@ -20,7 +20,7 @@ endif
 TEST_LINKS = -lgtest -lpthread
 
 
-VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o buckets.o
+VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o
 TEST_OBJS = tests.o
 
 

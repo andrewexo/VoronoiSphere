@@ -13,7 +13,6 @@ class BeachArc
 {
     public:
         VoronoiSite* m_site;
-        bool m_eventValid;
 };
 
 struct SweepLine
