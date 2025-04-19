@@ -16,15 +16,6 @@
 template <Order O>
 const double sweeplineStart;
 
-template <Axis A>
-class OrientedDvec3
-{
-  public:
-    glm::dvec3 vec;
-    void operator=(glm::dvec3 vec) { this->vec = vec; };
-    inline glm::highp_float getComponent() const;
-};
-
 template <Order O>
 class OrderedIterator 
 {
@@ -59,8 +50,8 @@ class VoronoiSweeper
     double m_sweeplineSmall;
 
     BeachLine<O> m_beachLine;
-    Buckets<O> m_buckets;
-    //PriQueue<O> m_circles;
+    //Buckets<O> m_buckets;
+    PriQueue<O> m_circles;
 
     std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;
@@ -75,7 +66,7 @@ class VoronoiSweeper
     void processSiteEvent(VoronoiSite* site);
     void processCircleEvent(CircleEvent<O>* circle);
 
-    bool onOtherSide(const OrientedDvec3<A> & cc);
+    bool onOtherSide(const glm::dvec3 & cc);
 
     bool eventIsUpcoming(double small_polar, double large_polar);
 

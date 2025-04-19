@@ -9,7 +9,15 @@
 #include <cstring>
 #include <boost/chrono.hpp>
 #include <boost/timer/timer.hpp>
+#include <mutex>
 
+// Define this macro to enable timing output for SweepTasks
+//#define ENABLE_SWEEP_TIMERS
+
+#ifdef ENABLE_SWEEP_TIMERS
+// Global mutex for synchronizing console output
+std::mutex cout_mutex;
+#endif
 
 VoronoiGenerator::VoronoiGenerator()
 {
@@ -568,9 +576,23 @@ void SortPoints2Task::process()
 template<Order O, Axis A>
 inline void SweepTask<O, A>::process()
 {
+#ifdef ENABLE_SWEEP_TIMERS
+  boost::timer::cpu_timer timer;
+#endif
+  
   VoronoiSweeper<O, A> voronoiSweeper(td.sites, td.gen, td.taskId);
   voronoiSweeper.sweep();
-  // std::cout << "Sweeper done\n";
+  
+#ifdef ENABLE_SWEEP_TIMERS
+  std::string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
+  std::string axisStr;
+  if (A == X) axisStr = "X";
+  else if (A == Y) axisStr = "Y";
+  else axisStr = "Z";
+  
+  std::lock_guard<std::mutex> lock(cout_mutex);
+  std::cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << std::endl;
+#endif
 }
 
 template class SweepTask<Increasing, X>;

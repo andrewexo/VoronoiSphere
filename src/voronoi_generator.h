@@ -110,7 +110,7 @@ struct TaskDataDualSort
 struct TaskDataSweep
 {
     std::vector<VoronoiSite>* sites;
-	unsigned int gen;
+    unsigned int gen;
     uint8_t taskId;
 };
 

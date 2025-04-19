@@ -1,6 +1,10 @@
 {
   "files.associations": {
-    "random": "cpp"
+    "random": "cpp",
+    "bitset": "cpp",
+    "string_view": "cpp",
+    "chrono": "cpp",
+    "future": "cpp"
   },
   "cmake.configureOnOpen": false
 }

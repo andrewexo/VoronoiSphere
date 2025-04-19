@@ -1,10 +1,10 @@
 UNAME := $(shell uname)
 
-DEBUG_OR_OPT := -O3# -g
+DEBUG_OR_OPT := -O3 # -g
 
 ifeq ($(UNAME), Linux)
-COMPILER = g++-9
-LINKER = g++-9
+COMPILER = g++
+LINKER = g++
 FLAGS = -Wall -std=c++14 $(DEBUG_OR_OPT) -msse4.2 -Igoogletest/include/ -Iboost_1_62_0/
 LINKS = -Lboost_1_62_0/stage/lib -lboost_timer -lboost_chrono -lboost_system -lpthread
 endif

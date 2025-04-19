@@ -1,5 +1,3 @@
-#if defined(SWEEP_AXIS)
-
 #include "voronoi.h"
 #include "globals.h"
 #include "../glm/glm.hpp"
@@ -32,33 +30,33 @@ template <>
 bool VoronoiSweeper<Increasing,SWEEP_AXIS>
 ::eventIsUpcoming(double small_polar, double large_polar)
 {
-	return (large_polar - m_sweeplineLarge) + (small_polar - m_sweeplineSmall) >= 0;
+	return (large_polar - m_sweeplineLarge) + 
+		   (small_polar - m_sweeplineSmall) >= 0;
 }
 
 template <>
 bool VoronoiSweeper<Decreasing,SWEEP_AXIS>
 ::eventIsUpcoming(double small_polar, double large_polar)
 {
-	return (large_polar - m_sweeplineLarge) - (small_polar - m_sweeplineSmall) <= 0;
+	return (large_polar - m_sweeplineLarge) - 
+	  	   (small_polar - m_sweeplineSmall) <= 0;
 }
 
 template <>
 inline bool VoronoiSweeper<Decreasing,SWEEP_AXIS>
-::onOtherSide(const OrientedDvec3<SWEEP_AXIS> & cc)
+::onOtherSide(const glm::dvec3 & cc)
 {
-	return cc.getComponent() > 0.0;
+	return cc[SWEEP_AXIS] > 0.0;
 }
 
 template <>
 inline bool VoronoiSweeper<Increasing,SWEEP_AXIS>
-::onOtherSide(const OrientedDvec3<SWEEP_AXIS> & cc)
+::onOtherSide(const glm::dvec3 & cc)
 {
-	return cc.getComponent() < -0.0;
+	return cc[SWEEP_AXIS] < -0.0;
 }
 
 // Forward declare template types so compiler generates 
 // code to link against
 template class VoronoiSweeper<Increasing,SWEEP_AXIS>;
 template class VoronoiSweeper<Decreasing,SWEEP_AXIS>;
-
-#endif
