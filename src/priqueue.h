@@ -14,15 +14,15 @@ class PriQueueNode
 {
     public:
 
-        PriQueueNode(int i);
+        PriQueueNode(size_t i);
 
-        int index;
+        size_t index;
 
-        int skips[SKIP_DEPTH];
-        int next;
+        size_t skips[SKIP_DEPTH];
+        size_t next;
 
-        int prev_skips[SKIP_DEPTH];
-        int prev;
+        size_t prev_skips[SKIP_DEPTH];
+        size_t prev;
 
         void clear();
 };

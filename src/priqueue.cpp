@@ -8,7 +8,7 @@ constexpr int DIST_MAX = 1 << (SKIP_DEPTH + 1);
 constexpr int SKIP_DEPTH_sub1 = SKIP_DEPTH - 1;
 
 template <Order O>
-PriQueueNode<O>::PriQueueNode(int i)
+PriQueueNode<O>::PriQueueNode(size_t i)
 {
     index = i;
     clear();
@@ -17,10 +17,10 @@ PriQueueNode<O>::PriQueueNode(int i)
 template <Order O>
 inline void PriQueueNode<O>::clear()
 {
-    memset(skips, -1, sizeof(int) * SKIP_DEPTH);
-    next = -1;
-    memset(prev_skips, -1, sizeof(int) * SKIP_DEPTH);
-    prev = -1;
+    memset(skips, (size_t)-1, sizeof(size_t) * SKIP_DEPTH);
+    next = (size_t)-1;
+    memset(prev_skips, (size_t)-1, sizeof(size_t) * SKIP_DEPTH);
+    prev = (size_t)-1;
 }
 
 template <Order O>
@@ -52,10 +52,10 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
             head->prev = node->index;
             for (int i = 0; i < SKIP_DEPTH; i++)
             {
-                if (head->skips[i] == -1) break;
+                if (head->skips[i] == (size_t)-1) break;
                 node->skips[i] = head->skips[i];
                 NODE(head, skips[i])->prev_skips[i] = node->index;
-                head->skips[i] = -1;
+                head->skips[i] = (size_t)-1;
             }
             head = node;
             return;
@@ -68,7 +68,7 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         while (true)
         {
             PriQueueNode<O>* next = NODE(curr, skips[skip_level]);
-            if (curr->skips[skip_level] != -1 && 
+            if (curr->skips[skip_level] != (size_t)-1 && 
                 comp(getCircleEventFromPriQueueNode(node), 
                 getCircleEventFromPriQueueNode(next)))
             {
@@ -82,7 +82,7 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         }
 
         // continue search on the linked list level
-        while (curr->next != -1 && 
+        while (curr->next != (size_t)-1 && 
                comp(getCircleEventFromPriQueueNode(node),
                getCircleEventFromPriQueueNode(NODE(curr, next))))
         {
@@ -92,7 +92,7 @@ void PriQueue<O>::push(PriQueueNode<O>* node)
         // insert after curr
         node->next = curr->next;
         node->prev = curr->index;
-        if (curr->next != -1)
+        if (curr->next != (size_t)-1)
             NODE(curr, next)->prev = node->index;
         curr->next = node->index;
 
@@ -126,7 +126,7 @@ void PriQueue<O>::addSkips(PriQueueNode<O>* node, PriQueueNode<O>** previous)
     for (int i = 0; i < skip_count; i++)
     {
         node->skips[i] = (*previous)->skips[i];
-        if (node->skips[i] != -1) NODE(node, skips[i])->prev_skips[i] = node->index;
+        if (node->skips[i] != (size_t)-1) NODE(node, skips[i])->prev_skips[i] = node->index;
 
         node->prev_skips[i] = (*previous)->index;
         (*previous)->skips[i] = node->index;
@@ -149,21 +149,21 @@ void PriQueue<O>::pop()
 {
     if (head == NULL) return;
 
-    if (head->next != -1)
+    if (head->next != (size_t)-1)
     {
         for (int i = 0; i < SKIP_DEPTH; i++)
         {
-            if (head->skips[i] == -1) break;
+            if (head->skips[i] == (size_t)-1) break;
 
             if (head->skips[i] != head->next)
             {
                 NODE(head, next)->skips[i] = head->skips[i];
                 NODE(head, skips[i])->prev_skips[i] = head->next;
             }
-            NODE(head, next)->prev_skips[i] = -1;
+            NODE(head, next)->prev_skips[i] = (size_t)-1;
         }
 
-        NODE(head, next)->prev = -1;
+        NODE(head, next)->prev = (size_t)-1;
 
         head = NODE(head, next);
     }
@@ -182,18 +182,18 @@ bool PriQueue<O>::empty()
 template <Order O>
 void PriQueue<O>::erase(PriQueueNode<O>* node)
 {
-    if (node->prev == -1)
+    if (node->prev == (size_t)-1)
     {
         pop();
     }
-    else if (node->next == -1)
+    else if (node->next == (size_t)-1)
     {
-        NODE(node, prev)->next = -1;
+        NODE(node, prev)->next = (size_t)-1;
 
         for (int i = 0; i < SKIP_DEPTH; i++)
         {
-            if (node->prev_skips[i] == -1) break;
-            NODE(node, prev_skips[i])->skips[i] = -1;
+            if (node->prev_skips[i] == (size_t)-1) break;
+            NODE(node, prev_skips[i])->skips[i] = (size_t)-1;
         }
     }
     else
@@ -205,13 +205,13 @@ void PriQueue<O>::erase(PriQueueNode<O>* node)
         {
             bool c = false;
 
-            if (node->skips[i] != -1)
+            if (node->skips[i] != (size_t)-1)
             {
                 NODE(node, skips[i])->prev_skips[i] = node->prev_skips[i];
                 c = true;
             }
 
-            if (node->prev_skips[i] != -1)
+            if (node->prev_skips[i] != (size_t)-1)
             {
                 NODE(node, prev_skips[i])->skips[i] = node->skips[i];
                 c = true;
