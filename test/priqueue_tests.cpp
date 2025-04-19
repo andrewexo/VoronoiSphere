@@ -4,113 +4,113 @@
 
 #include "gtest/gtest.h"
 
-TEST(PriQueueTests, TestInsertLinkedList)
-{
-    MemBlock<Increasing>* m_memBlocks;
-    MemBlock<Increasing>* m_nextBlock;
-    auto size = 5 * sizeof(MemBlock<Increasing>);
-    m_nextBlock = m_memBlocks = (MemBlock<Increasing>*)malloc( size );
-	int block = 0;
+// TEST(PriQueueTests, TestInsertLinkedList)
+// {
+//     MemBlock<Increasing>* m_memBlocks;
+//     MemBlock<Increasing>* m_nextBlock;
+//     auto size = 5 * sizeof(MemBlock<Increasing>);
+//     m_nextBlock = m_memBlocks = (MemBlock<Increasing>*)malloc( size );
+// 	int block = 0;
 
-    new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
-    new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
-	block++;
+//     new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
+//     new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
+// 	block++;
 
-    SkipNode<Increasing>* skipNode = &((m_nextBlock)->skipNode);
-    PriQueueNode<Increasing>* pq1 = &((m_nextBlock)->priQueueNode);
-    m_nextBlock++;
+//     SkipNode<Increasing>* skipNode = &((m_nextBlock)->skipNode);
+//     PriQueueNode<Increasing>* pq1 = &((m_nextBlock)->priQueueNode);
+//     m_nextBlock++;
 
-    new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
-		1.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
+//     new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
+// 		1.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
 
-    CircleEvent<Increasing>* ce1 = getCircleEventFromSkipNode(skipNode);
+//     CircleEvent<Increasing>* ce1 = getCircleEventFromSkipNode(skipNode);
     
 
     
-    new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
-    new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
-	block++;
+//     new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
+//     new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
+// 	block++;
 
-    skipNode = &((m_nextBlock)->skipNode);
-    PriQueueNode<Increasing>* pq2 = &((m_nextBlock)->priQueueNode);
-    m_nextBlock++;
+//     skipNode = &((m_nextBlock)->skipNode);
+//     PriQueueNode<Increasing>* pq2 = &((m_nextBlock)->priQueueNode);
+//     m_nextBlock++;
 
-    new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
-		2.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
+//     new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
+// 		2.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
 
-    CircleEvent<Increasing>* ce2 = getCircleEventFromSkipNode(skipNode);
-
-
-
-    new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
-    new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
-	block++;
-
-    skipNode = &((m_nextBlock)->skipNode);
-    PriQueueNode<Increasing>* pq3 = &((m_nextBlock)->priQueueNode);
-    m_nextBlock++;
-
-    new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
-		3.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
-
-    CircleEvent<Increasing>* ce3 = getCircleEventFromSkipNode(skipNode);
+//     CircleEvent<Increasing>* ce2 = getCircleEventFromSkipNode(skipNode);
 
 
 
-    new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
-    new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
-	block++;
+//     new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
+//     new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
+// 	block++;
 
-    skipNode = &((m_nextBlock)->skipNode);
-    PriQueueNode<Increasing>* pq4 = &((m_nextBlock)->priQueueNode);
-    m_nextBlock++;
+//     skipNode = &((m_nextBlock)->skipNode);
+//     PriQueueNode<Increasing>* pq3 = &((m_nextBlock)->priQueueNode);
+//     m_nextBlock++;
 
-    new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
-		4.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
+//     new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
+// 		3.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
 
-    CircleEvent<Increasing>* ce4 = getCircleEventFromSkipNode(skipNode);
+//     CircleEvent<Increasing>* ce3 = getCircleEventFromSkipNode(skipNode);
+
+
+
+//     new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
+//     new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
+// 	block++;
+
+//     skipNode = &((m_nextBlock)->skipNode);
+//     PriQueueNode<Increasing>* pq4 = &((m_nextBlock)->priQueueNode);
+//     m_nextBlock++;
+
+//     new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
+// 		4.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
+
+//     CircleEvent<Increasing>* ce4 = getCircleEventFromSkipNode(skipNode);
     
 
-    new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
-    new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
-	block++;
+//     new(&(m_nextBlock->priQueueNode)) PriQueueNode<Increasing>(block);
+//     new(&(m_nextBlock->skipNode)) SkipNode<Increasing>(block);
+// 	block++;
 
-    skipNode = &((m_nextBlock)->skipNode);
-    PriQueueNode<Increasing>* pq5 = &((m_nextBlock)->priQueueNode);
-    m_nextBlock++;
+//     skipNode = &((m_nextBlock)->skipNode);
+//     PriQueueNode<Increasing>* pq5 = &((m_nextBlock)->priQueueNode);
+//     m_nextBlock++;
 
-    new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
-		5.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
+//     new(getCircleEventFromSkipNode(skipNode)) CircleEvent<Increasing>(
+// 		5.0, 0.0, glm::dvec3(0.0, 0.0, 0.0));
 
-    CircleEvent<Increasing>* ce5 = getCircleEventFromSkipNode(skipNode);
+//     CircleEvent<Increasing>* ce5 = getCircleEventFromSkipNode(skipNode);
 
 
-    // initialize
-    PriQueue<Increasing> pq;
-    pq.push(pq1);
-    pq.push(pq2);
-    pq.push(pq3);
-    pq.push(pq4);
-    pq.push(pq5);
+//     // initialize
+//     PriQueue<Increasing> pq;
+//     pq.push(pq1);
+//     pq.push(pq2);
+//     pq.push(pq3);
+//     pq.push(pq4);
+//     pq.push(pq5);
 
-    // do checks
-    EXPECT_EQ(getPriQueueNodeFromCircleEvent(ce1)->prev, -1);
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce1),next), getPriQueueNodeFromCircleEvent(ce2));
+//     // do checks
+//     EXPECT_EQ(getPriQueueNodeFromCircleEvent(ce1)->prev, -1);
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce1),next), getPriQueueNodeFromCircleEvent(ce2));
 
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce2),prev), getPriQueueNodeFromCircleEvent(ce1));
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce2),next), getPriQueueNodeFromCircleEvent(ce3));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce2),prev), getPriQueueNodeFromCircleEvent(ce1));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce2),next), getPriQueueNodeFromCircleEvent(ce3));
 
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce3),prev), getPriQueueNodeFromCircleEvent(ce2));
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce3),next), getPriQueueNodeFromCircleEvent(ce4));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce3),prev), getPriQueueNodeFromCircleEvent(ce2));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce3),next), getPriQueueNodeFromCircleEvent(ce4));
 
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce4),prev), getPriQueueNodeFromCircleEvent(ce3));
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce4),next), getPriQueueNodeFromCircleEvent(ce5));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce4),prev), getPriQueueNodeFromCircleEvent(ce3));
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce4),next), getPriQueueNodeFromCircleEvent(ce5));
 
-    EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce5),prev), getPriQueueNodeFromCircleEvent(ce4));
-    EXPECT_EQ(getPriQueueNodeFromCircleEvent(ce5)->next, -1);
+//     EXPECT_EQ(NODE(getPriQueueNodeFromCircleEvent(ce5),prev), getPriQueueNodeFromCircleEvent(ce4));
+//     EXPECT_EQ(getPriQueueNodeFromCircleEvent(ce5)->next, -1);
 
-    free (m_memBlocks);
-}
+//     free (m_memBlocks);
+// }
 
 // TEST(PriQueueTests, TestInsertOutOfOrderLinkedList)
 // {

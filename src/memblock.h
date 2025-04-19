@@ -36,7 +36,7 @@ template <Order O>
 const int pqnTOba = priQueueNodeOffset<O> - beachArcOffset<O>;
 
 template <Order O>
-const int pqnTOSni = priQueueNodeOffset<O> - skipNodeOffset<O>;
+const int pqnTOce = priQueueNodeOffset<O> - circleEventOffset<O>;
 
 template <Order O>
 inline PriQueueNode<O>* getPriQueueNodeFromBeachArc(BeachArc<O>* arc)
@@ -45,9 +45,9 @@ inline PriQueueNode<O>* getPriQueueNodeFromBeachArc(BeachArc<O>* arc)
 }
 
 template <Order O>
-inline PriQueueNode<O>** getPriQueueNodePtrFromSkipNode(SkipNode<O>* skipNode)
+inline PriQueueNode<O>** getPriQueueNodePtrFromCircleEvent(CircleEvent<O>* circleEvent)
 {
-    return (PriQueueNode<O>**) ((char*)skipNode + pqnTOSni<O>);
+    return (PriQueueNode<O>**) ((char*)circleEvent + pqnTOce<O>);
 }
 
 template <Order O>

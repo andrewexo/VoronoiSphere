@@ -39,8 +39,11 @@ PriQueue<O>::~PriQueue()
 
 // 25.01% - 32.13%
 template <Order O>
-void PriQueue<O>::push(PriQueueNode<O>* node)
+void PriQueue<O>::push(CircleEvent<O>* event)
 {
+    PriQueueNode<O>* node = new PriQueueNode<O>(event);
+    *getPriQueueNodePtrFromCircleEvent(event) = node;
+
     if (head == nullptr)
     {
         head = node;
@@ -181,8 +184,11 @@ bool PriQueue<O>::empty()
 }
 
 template <Order O>
-void PriQueue<O>::erase(PriQueueNode<O>* node)
+void PriQueue<O>::erase(CircleEvent<O>* event)
 {
+    PriQueueNode<O>* node = *getPriQueueNodePtrFromCircleEvent(event);
+    if (node == nullptr) return;
+
     if (node->prev == nullptr)
     {
         pop();

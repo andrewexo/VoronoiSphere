@@ -34,12 +34,12 @@ class PriQueue
         PriQueue();
         ~PriQueue();
 
-        void push(PriQueueNode<O>* node);
+        void push(CircleEvent<O>* event);
         CircleEvent<O>* top();
         void pop();
         bool empty();
 
-        void erase(PriQueueNode<O>* node);
+        void erase(CircleEvent<O>* event);
 
     private:
 

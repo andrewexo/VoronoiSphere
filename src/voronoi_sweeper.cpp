@@ -102,7 +102,7 @@ void VoronoiSweeper<O,A>
 		
 	m_beachLine.findAndInsert(node, node2, site->m_polar, m_threadId);
 
-	removeCircleEvent(&(NODE(node, prev)->m_beachArc));
+	removeCircleEvent(NODE(node, prev));
 	addCircleEventProcessSite(NODE(node, prev));
 	addCircleEventProcessSite(NODE(node, next));
 }
@@ -126,8 +126,8 @@ void VoronoiSweeper<O,A>
 	snk->m_beachArc.m_site->m_cell->addCorner(dv, m_threadId);
 
 	// remove circle events of neighbors
-	removeCircleEvent(&(sni->m_beachArc));
-	removeCircleEvent(&(snk->m_beachArc));
+	removeCircleEvent(sni);
+	removeCircleEvent(snk);
 
 	// remove site from beachline
 	m_beachLine.erase(sn, m_threadId);
@@ -146,18 +146,15 @@ inline void VoronoiSweeper<O,A>
 	const glm::dvec3 & cc)
 {
 	CircleEvent<O>* ce = new(getCircleEventFromSkipNode(node)) CircleEvent<O>(large_polar, small_polar, cc);
-	auto pqn = new PriQueueNode<O>(ce);
-	*getPriQueueNodePtrFromSkipNode(node) = pqn;
-  	m_circles.push(pqn);
+  	m_circles.push(ce);
 }
 
 template <Order O, Axis A>
 void VoronoiSweeper<O,A>
-::removeCircleEvent(BeachArc<O>* arc)
+::removeCircleEvent(SkipNode<O>* node)
 {
-	PriQueueNode<O>* node = getPriQueueNodeFromBeachArc(arc);
-	if (node != nullptr)
-		m_circles.erase(node);
+	CircleEvent<O>* ce = getCircleEventFromSkipNode(node);
+	m_circles.erase(ce);
 }
 
 template <Order O, Axis A>

@@ -78,7 +78,7 @@ class VoronoiSweeper
       double sp, 
       const glm::dvec3 & cc);
 
-    void removeCircleEvent(BeachArc<O>* arc);
+    void removeCircleEvent(SkipNode<O>* node);
 
     // Memory buffer
     int block;
