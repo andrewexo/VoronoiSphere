@@ -20,6 +20,8 @@ class CircleEvent
 
         double polar, polar_small;
         glm::dvec3 center;
+
+        PriQueueNode<O>* pqn;
 };
 
 #endif

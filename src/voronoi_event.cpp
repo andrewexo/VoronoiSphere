@@ -8,6 +8,7 @@ CircleEvent<O>::CircleEvent(double polar, double polar_small, const glm::dvec3 &
     this->polar = polar;
     this->polar_small = polar_small;
     center = c;
+    pqn = nullptr;
 }
 
 template class CircleEvent<Increasing>;

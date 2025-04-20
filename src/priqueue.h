@@ -7,7 +7,8 @@
 
 #include "gtest/gtest_prod.h"
 
-#define SKIP_DEPTH 8
+#define SKIP_DEPTH 4
+#define ROLL_LENGTH 4
 
 template <Order O>
 class PriQueueNode
@@ -15,15 +16,16 @@ class PriQueueNode
     public:
 
         PriQueueNode(CircleEvent<O>* event);
-        CircleEvent<O>* event;
+        PriQueueNode();
+        void clear();
+        uint8_t count;
+        CircleEvent<O>* event[ROLL_LENGTH];
 
         PriQueueNode<O>* skips[SKIP_DEPTH];
         PriQueueNode<O>* next;
 
         PriQueueNode<O>* prev_skips[SKIP_DEPTH];
         PriQueueNode<O>* prev;
-
-        void clear();
 };
 
 template <Order O>
