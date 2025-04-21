@@ -8,9 +8,6 @@
 #include "globals.h"
 #include "../glm/glm.hpp"
 
-template <Order O> class SkipNode;
-template <Order O> class PriQueueNode;
-
 template <Order O>
 class CircleEvent
 {
@@ -21,7 +18,7 @@ class CircleEvent
         double polar, polar_small;
         glm::dvec3 center;
 
-        PriQueueNode<O>* pqn;
+        void* pqn; // pointer to node in priority queue
 };
 
 #endif

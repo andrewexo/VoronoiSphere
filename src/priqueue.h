@@ -9,26 +9,27 @@
 
 #define SKIP_DEPTH 4
 #define ROLL_LENGTH 4
+static_assert(ROLL_LENGTH == 4); // TODO: make this dynamic
 
-template <Order O>
+template <typename T>
 class PriQueueNode
 {
     public:
 
-        PriQueueNode(CircleEvent<O>* event);
+        PriQueueNode(T* event);
         PriQueueNode();
         void clear();
         uint8_t count;
-        CircleEvent<O>* event[ROLL_LENGTH];
+        T* event[ROLL_LENGTH];
 
-        PriQueueNode<O>* skips[SKIP_DEPTH];
-        PriQueueNode<O>* next;
+        PriQueueNode<T>* skips[SKIP_DEPTH];
+        PriQueueNode<T>* next;
 
-        PriQueueNode<O>* prev_skips[SKIP_DEPTH];
-        PriQueueNode<O>* prev;
+        PriQueueNode<T>* prev_skips[SKIP_DEPTH];
+        PriQueueNode<T>* prev;
 };
 
-template <Order O>
+template <typename T, typename Compare>
 class PriQueue
 {
     public:
@@ -36,22 +37,22 @@ class PriQueue
         PriQueue();
         ~PriQueue();
 
-        void push(CircleEvent<O>* event);
-        CircleEvent<O>* top();
+        void push(T* event);
+        T* top();
         void pop();
         bool empty();
 
-        void erase(CircleEvent<O>* event);
+        void erase(T* event);
 
     private:
 
-        PriQueueNode<O>* head;
-        VoronoiEventCompare<O> comp;
+        PriQueueNode<T>* head;
+        Compare comp;
 
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution;
 
-        void addSkips(PriQueueNode<O>* node, PriQueueNode<O>** previous);
+        void addSkips(PriQueueNode<T>* node, PriQueueNode<T>** previous);
 
         // tests
         FRIEND_TEST(PriQueueTests, TestInsertLinkedList);

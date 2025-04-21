@@ -7,8 +7,8 @@
 constexpr int DIST_MAX = 1 << (SKIP_DEPTH + 1);
 constexpr int SKIP_DEPTH_sub1 = SKIP_DEPTH - 1;
 
-template <Order O>
-PriQueueNode<O>::PriQueueNode(CircleEvent<O>* event)
+template <typename T>
+PriQueueNode<T>::PriQueueNode(T* event)
 {
     count = 1;
     this->event[0] = event;
@@ -16,15 +16,15 @@ PriQueueNode<O>::PriQueueNode(CircleEvent<O>* event)
     clear();
 }
 
-template <Order O>
-PriQueueNode<O>::PriQueueNode()
+template <typename T>
+PriQueueNode<T>::PriQueueNode()
 {
     count = 0;
     clear();
 }
 
-template <Order O>
-void PriQueueNode<O>::clear()
+template <typename T>
+void PriQueueNode<T>::clear()
 {
     for (int i = count; i < ROLL_LENGTH; i++)
         event[i] = nullptr;
@@ -37,25 +37,25 @@ void PriQueueNode<O>::clear()
     prev = nullptr;
 }
 
-template <Order O>
-PriQueue<O>::PriQueue()
+template <typename T, typename Compare>
+PriQueue<T, Compare>::PriQueue()
 {
     head = nullptr;
     distribution = std::uniform_int_distribution<int>(0, DIST_MAX);
 }
 
-template <Order O>
-PriQueue<O>::~PriQueue()
+template <typename T, typename Compare>
+PriQueue<T, Compare>::~PriQueue()
 {
 }
 
 // 25.01% - 32.13%
-template <Order O>
-void PriQueue<O>::push(CircleEvent<O>* event)
+template <typename T, typename Compare>
+void PriQueue<T, Compare>::push(T* event)
 {
     if (head == nullptr)
     {
-        PriQueueNode<O>* node = new PriQueueNode<O>(event);
+        PriQueueNode<T>* node = new PriQueueNode<T>(event);
         head = node;
         return;
     }
@@ -63,14 +63,14 @@ void PriQueue<O>::push(CircleEvent<O>* event)
     if (comp(head->event[0], event)) // insert at front
     {
         if (head->count < ROLL_LENGTH) {
-            memmove(head->event + 1, head->event, head->count * sizeof(CircleEvent<O>*));
+            memmove(head->event + 1, head->event, head->count * sizeof(T*));
             head->event[0] = event;
             head->count++;
             event->pqn = head;
             return;
         }
 
-        PriQueueNode<O>* node = new PriQueueNode<O>(event);
+        PriQueueNode<T>* node = new PriQueueNode<T>(event);
         node->next = head;
         head->prev = node;
         for (int i = 0; i < SKIP_DEPTH; i++)
@@ -85,12 +85,12 @@ void PriQueue<O>::push(CircleEvent<O>* event)
     }
 
     int skip_level = SKIP_DEPTH_sub1;
-    PriQueueNode<O>* nodes[SKIP_DEPTH];
-    PriQueueNode<O>* curr = head;
+    PriQueueNode<T>* nodes[SKIP_DEPTH];
+    PriQueueNode<T>* curr = head;
 
     while (true)
     {
-        PriQueueNode<O>* next = curr->skips[skip_level];
+        PriQueueNode<T>* next = curr->skips[skip_level];
         if (curr->skips[skip_level] != nullptr && 
             comp(event, next->event[0]))
         {
@@ -113,7 +113,7 @@ void PriQueue<O>::push(CircleEvent<O>* event)
     if (curr->count < ROLL_LENGTH) {
         for (size_t i = 1; i < curr->count; i++ ) {
             if (comp(curr->event[i], event)) {
-                memmove(curr->event+i+1, curr->event+i, (curr->count-i) * sizeof(CircleEvent<O>*));
+                memmove(curr->event+i+1, curr->event+i, (curr->count-i) * sizeof(T*));
                 curr->event[i] = event;
                 curr->count++;
                 event->pqn = curr;
@@ -126,7 +126,7 @@ void PriQueue<O>::push(CircleEvent<O>* event)
     }
 
     // split curr into two nodes
-    PriQueueNode<O>* node = new PriQueueNode<O>();
+    PriQueueNode<T>* node = new PriQueueNode<T>();
     //  Code below assumes ROLL_LENGTH is 4
     size_t i = 1;
     for (; i < ROLL_LENGTH; i++) { 
@@ -224,8 +224,8 @@ inline int log2_5(int n)
     return r;
 }
 
-template <Order O>
-void PriQueue<O>::addSkips(PriQueueNode<O>* node, PriQueueNode<O>** previous)
+template <typename T, typename Compare>
+void PriQueue<T, Compare>::addSkips(PriQueueNode<T>* node, PriQueueNode<T>** previous)
 {
     int skip_count = (int) (SKIP_DEPTH - log2_5(std::max((int)(distribution(generator)), 1)));
 
@@ -241,8 +241,8 @@ void PriQueue<O>::addSkips(PriQueueNode<O>* node, PriQueueNode<O>** previous)
     }
 }
 
-template <Order O>
-CircleEvent<O>* PriQueue<O>::top()
+template <typename T, typename Compare>
+T* PriQueue<T, Compare>::top()
 {
     if (head == nullptr)
         return nullptr;
@@ -250,8 +250,8 @@ CircleEvent<O>* PriQueue<O>::top()
         return head->event[0];
 }
 
-template <Order O>
-void PriQueue<O>::pop()
+template <typename T, typename Compare>
+void PriQueue<T, Compare>::pop()
 {
     if (head == nullptr) return;
 
@@ -259,7 +259,7 @@ void PriQueue<O>::pop()
 
     if (head->count > 1)
     {
-        memmove(head->event, head->event+1, (head->count-1) * sizeof(CircleEvent<O>*));
+        memmove(head->event, head->event+1, (head->count-1) * sizeof(T*));
         head->count--;
         return;
     }
@@ -290,16 +290,16 @@ void PriQueue<O>::pop()
     delete oldHead;
 }
 
-template <Order O>
-bool PriQueue<O>::empty()
+template <typename T, typename Compare>
+bool PriQueue<T, Compare>::empty()
 {
     return head == nullptr;
 }
 
-template <Order O>
-void PriQueue<O>::erase(CircleEvent<O>* event)
+template <typename T, typename Compare>
+void PriQueue<T, Compare>::erase(T* event)
 {
-    PriQueueNode<O>* node = event->pqn;
+    PriQueueNode<T>* node = (PriQueueNode<T>*)event->pqn;
     event->pqn = nullptr;
 
     if (node == nullptr) return;
@@ -316,7 +316,7 @@ void PriQueue<O>::erase(CircleEvent<O>* event)
         {
             for (size_t i = 0; i < node->count; i++) {
                 if (node->event[i] == event) {
-                    memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(CircleEvent<O>*));
+                        memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(T*));
                     node->count--;
                     return;
                 }
@@ -338,7 +338,7 @@ void PriQueue<O>::erase(CircleEvent<O>* event)
         {
             for (size_t i = 0; i < node->count; i++) {
                 if (node->event[i] == event) {
-                    memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(CircleEvent<O>*));
+                    memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(T*));
                     node->count--;
                     return;
                 }
@@ -371,8 +371,8 @@ void PriQueue<O>::erase(CircleEvent<O>* event)
 }
 
 // Forward declare template types so compiler generates code to link against
-template class PriQueue<Increasing>;
-template class PriQueue<Decreasing>;
+template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>>;
+template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>>;
 
-template class PriQueueNode<Increasing>;
-template class PriQueueNode<Decreasing>;
+template class PriQueueNode<CircleEvent<Increasing>>;
+template class PriQueueNode<CircleEvent<Decreasing>>;
