@@ -81,8 +81,7 @@ inline SkipNode<O>* VoronoiSweeper<O, A>
 ::initBlock()
 {
 	new(&(m_nextBlock->skipNode)) SkipNode<O>(block);
-	m_nextBlock->priQueueNodePtr = nullptr;
-
+	new(&(m_nextBlock->circleEvent)) CircleEvent<O>();
 	block++;
 	return &((m_nextBlock++)->skipNode);
 }

@@ -7,26 +7,28 @@
 
 #include "gtest/gtest_prod.h"
 
-#define SKIP_DEPTH 8
 
-template <Order O>
+template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 class PriQueueNode
 {
+    static_assert(ROLL_LENGTH % 2 == 0);
+
     public:
 
-        PriQueueNode(CircleEvent<O>* event);
-        CircleEvent<O>* event;
-
-        PriQueueNode<O>* skips[SKIP_DEPTH];
-        PriQueueNode<O>* next;
-
-        PriQueueNode<O>* prev_skips[SKIP_DEPTH];
-        PriQueueNode<O>* prev;
-
+        PriQueueNode(T* event);
+        PriQueueNode();
         void clear();
+        uint8_t count;
+        T* event[ROLL_LENGTH];
+
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* skips[SKIP_DEPTH];
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* next;
+
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* prev_skips[SKIP_DEPTH];
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* prev;
 };
 
-template <Order O>
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 class PriQueue
 {
     public:
@@ -34,32 +36,33 @@ class PriQueue
         PriQueue();
         ~PriQueue();
 
-        void push(CircleEvent<O>* event);
-        CircleEvent<O>* top();
+        void push(T* event);
+        T* top();
         void pop();
         bool empty();
 
-        void erase(CircleEvent<O>* event);
+        void erase(T* event);
 
     private:
 
-        PriQueueNode<O>* head;
-        VoronoiEventCompare<O> comp;
+        static constexpr int DIST_MAX = 1 << (SKIP_DEPTH + 1);
+        static constexpr int SKIP_DEPTH_sub1 = SKIP_DEPTH - 1;
+
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* head;
+        Compare comp;
 
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution;
 
-        void addSkips(PriQueueNode<O>* node, PriQueueNode<O>** previous);
+        void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
+
+        size_t audit();
 
         // tests
-        FRIEND_TEST(PriQueueTests, TestInsertLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertOutOfOrderLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertReverseOrderLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseHeadSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseTailSkips);
-        FRIEND_TEST(PriQueueTests, TestErasePopPushSkips);
+        FRIEND_TEST(PriQueueTests, TestPushPop);
+        FRIEND_TEST(PriQueueTests, TestPushPop2);
+        FRIEND_TEST(PriQueueTests, TestErase);  
+        FRIEND_TEST(PriQueueTests, TestErase2);
 };
 
 #endif

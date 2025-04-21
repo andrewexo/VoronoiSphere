@@ -9,7 +9,6 @@
 #include "beachline.h"
 #include "voronoi_event_compare.h"
 #include "priqueue.h"
-#include "buckets.h"
 #include "memblock.h"
 #include "globals.h"
 
@@ -50,8 +49,7 @@ class VoronoiSweeper
     double m_sweeplineSmall;
 
     BeachLine<O> m_beachLine;
-    //Buckets<O> m_buckets;
-    PriQueue<O> m_circles;
+    PriQueue<CircleEvent<O>, VoronoiEventCompare<O>, 8, 32> m_circles;
 
     std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;
