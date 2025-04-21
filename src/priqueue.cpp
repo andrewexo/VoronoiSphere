@@ -4,11 +4,10 @@
 #include <algorithm>
 #include "memblock.h"
 
-constexpr int DIST_MAX = 1 << (SKIP_DEPTH + 1);
-constexpr int SKIP_DEPTH_sub1 = SKIP_DEPTH - 1;
 
-template <typename T>
-PriQueueNode<T>::PriQueueNode(T* event)
+
+template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::PriQueueNode(T* event)
 {
     count = 1;
     this->event[0] = event;
@@ -16,19 +15,19 @@ PriQueueNode<T>::PriQueueNode(T* event)
     clear();
 }
 
-template <typename T>
-PriQueueNode<T>::PriQueueNode()
+template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::PriQueueNode()
 {
     count = 0;
     clear();
 }
 
-template <typename T>
-void PriQueueNode<T>::clear()
+template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+void PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::clear()
 {
-    for (int i = count; i < ROLL_LENGTH; i++)
+    for (size_t i = count; i < ROLL_LENGTH; i++)
         event[i] = nullptr;
-    for (int i = 0; i < SKIP_DEPTH; i++)
+    for (size_t i = 0; i < SKIP_DEPTH; i++)
     {
         skips[i] = nullptr;
         prev_skips[i] = nullptr;
@@ -37,25 +36,25 @@ void PriQueueNode<T>::clear()
     prev = nullptr;
 }
 
-template <typename T, typename Compare>
-PriQueue<T, Compare>::PriQueue()
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::PriQueue()
 {
     head = nullptr;
     distribution = std::uniform_int_distribution<int>(0, DIST_MAX);
 }
 
-template <typename T, typename Compare>
-PriQueue<T, Compare>::~PriQueue()
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::~PriQueue()
 {
 }
 
 // 25.01% - 32.13%
-template <typename T, typename Compare>
-void PriQueue<T, Compare>::push(T* event)
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::push(T* event)
 {
     if (head == nullptr)
     {
-        PriQueueNode<T>* node = new PriQueueNode<T>(event);
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>(event);
         head = node;
         return;
     }
@@ -70,10 +69,10 @@ void PriQueue<T, Compare>::push(T* event)
             return;
         }
 
-        PriQueueNode<T>* node = new PriQueueNode<T>(event);
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>(event);
         node->next = head;
         head->prev = node;
-        for (int i = 0; i < SKIP_DEPTH; i++)
+        for (size_t i = 0; i < SKIP_DEPTH; i++)
         {
             if (head->skips[i] == nullptr) break;
             node->skips[i] = head->skips[i];
@@ -85,12 +84,12 @@ void PriQueue<T, Compare>::push(T* event)
     }
 
     int skip_level = SKIP_DEPTH_sub1;
-    PriQueueNode<T>* nodes[SKIP_DEPTH];
-    PriQueueNode<T>* curr = head;
+    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* nodes[SKIP_DEPTH];
+    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* curr = head;
 
     while (true)
     {
-        PriQueueNode<T>* next = curr->skips[skip_level];
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* next = curr->skips[skip_level];
         if (curr->skips[skip_level] != nullptr && 
             comp(event, next->event[0]))
         {
@@ -126,7 +125,7 @@ void PriQueue<T, Compare>::push(T* event)
     }
 
     // split curr into two nodes
-    PriQueueNode<T>* node = new PriQueueNode<T>();
+    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>();
     size_t i = 1;
     for (; i < ROLL_LENGTH; i++) { 
         if (comp(curr->event[i], event)) {
@@ -181,8 +180,8 @@ inline int log2_5(int n)
     return r;
 }
 
-template <typename T, typename Compare>
-void PriQueue<T, Compare>::addSkips(PriQueueNode<T>* node, PriQueueNode<T>** previous)
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous)
 {
     int skip_count = (int) (SKIP_DEPTH - log2_5(std::max((int)(distribution(generator)), 1)));
 
@@ -198,8 +197,8 @@ void PriQueue<T, Compare>::addSkips(PriQueueNode<T>* node, PriQueueNode<T>** pre
     }
 }
 
-template <typename T, typename Compare>
-T* PriQueue<T, Compare>::top()
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+T* PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::top()
 {
     if (head == nullptr)
         return nullptr;
@@ -207,8 +206,8 @@ T* PriQueue<T, Compare>::top()
         return head->event[0];
 }
 
-template <typename T, typename Compare>
-void PriQueue<T, Compare>::pop()
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::pop()
 {
     if (head == nullptr) return;
 
@@ -224,7 +223,7 @@ void PriQueue<T, Compare>::pop()
     auto oldHead = head;
     if (head->next != nullptr)
     {
-        for (int i = 0; i < SKIP_DEPTH; i++)
+        for (size_t i = 0; i < SKIP_DEPTH; i++)
         {
             if (head->skips[i] == nullptr) break;
 
@@ -247,16 +246,16 @@ void PriQueue<T, Compare>::pop()
     delete oldHead;
 }
 
-template <typename T, typename Compare>
-bool PriQueue<T, Compare>::empty()
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+bool PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::empty()
 {
     return head == nullptr;
 }
 
-template <typename T, typename Compare>
-void PriQueue<T, Compare>::erase(T* event)
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
 {
-    PriQueueNode<T>* node = (PriQueueNode<T>*)event->pqn;
+    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = (PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>*)event->pqn;
     event->pqn = nullptr;
 
     if (node == nullptr) return;
@@ -282,7 +281,7 @@ void PriQueue<T, Compare>::erase(T* event)
         assert(node->count == 1);
         node->prev->next = nullptr;
 
-        for (int i = 0; i < SKIP_DEPTH; i++)
+        for (size_t i = 0; i < SKIP_DEPTH; i++)
         {
             if (node->prev_skips[i] == nullptr) break;
             node->prev_skips[i]->skips[i] = nullptr;
@@ -305,7 +304,7 @@ void PriQueue<T, Compare>::erase(T* event)
         node->prev->next = node->next;
         node->next->prev = node->prev;
 
-        for (int i = 0; i < SKIP_DEPTH; i++)
+        for (size_t i = 0; i < SKIP_DEPTH; i++)
         {
             bool c = false;
 
@@ -328,8 +327,8 @@ void PriQueue<T, Compare>::erase(T* event)
 }
 
 // Forward declare template types so compiler generates code to link against
-template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>>;
-template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>>;
+template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>, 4, 4>;
+template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>, 4, 4>;
 
-template class PriQueueNode<CircleEvent<Increasing>>;
-template class PriQueueNode<CircleEvent<Decreasing>>;
+template class PriQueueNode<CircleEvent<Increasing>, 4, 4>;
+template class PriQueueNode<CircleEvent<Decreasing>, 4, 4>;

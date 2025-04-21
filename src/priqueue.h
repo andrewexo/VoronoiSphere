@@ -7,13 +7,12 @@
 
 #include "gtest/gtest_prod.h"
 
-#define SKIP_DEPTH 4
-#define ROLL_LENGTH 16
-static_assert(ROLL_LENGTH % 2 == 0);
 
-template <typename T>
+template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 class PriQueueNode
 {
+    static_assert(ROLL_LENGTH % 2 == 0);
+
     public:
 
         PriQueueNode(T* event);
@@ -22,14 +21,14 @@ class PriQueueNode
         uint8_t count;
         T* event[ROLL_LENGTH];
 
-        PriQueueNode<T>* skips[SKIP_DEPTH];
-        PriQueueNode<T>* next;
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* skips[SKIP_DEPTH];
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* next;
 
-        PriQueueNode<T>* prev_skips[SKIP_DEPTH];
-        PriQueueNode<T>* prev;
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* prev_skips[SKIP_DEPTH];
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* prev;
 };
 
-template <typename T, typename Compare>
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 class PriQueue
 {
     public:
@@ -46,13 +45,16 @@ class PriQueue
 
     private:
 
-        PriQueueNode<T>* head;
+        static constexpr int DIST_MAX = 1 << (SKIP_DEPTH + 1);
+        static constexpr int SKIP_DEPTH_sub1 = SKIP_DEPTH - 1;
+
+        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* head;
         Compare comp;
 
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution;
 
-        void addSkips(PriQueueNode<T>* node, PriQueueNode<T>** previous);
+        void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
 
         // tests
         FRIEND_TEST(PriQueueTests, TestPushPop);

@@ -13,11 +13,11 @@ struct eventCompare
         return lhs->value > rhs->value;
     }
 };
-template class PriQueue<event, eventCompare>;
+template class PriQueue<event, eventCompare, 4, 32>;
 
 TEST(PriQueueTests, TestPushPop)
 {
-    PriQueue<event, eventCompare> pq;
+    PriQueue<event, eventCompare, 4, 32> pq;
     int count = 20000;
 
     std::vector<event*> events;
@@ -43,7 +43,7 @@ TEST(PriQueueTests, TestPushPop)
 
 TEST(PriQueueTests, TestErase)
 {
-    PriQueue<event, eventCompare> pq;
+    PriQueue<event, eventCompare, 4, 32> pq;   
     int count = 20000;
 
     std::vector<event*> events;
