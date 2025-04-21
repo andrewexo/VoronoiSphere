@@ -48,8 +48,6 @@ glm::dvec3 * VoronoiGenerator::genRandomInput(int count)
 void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool writeToFile)
 {
   {
-    //boost::timer::auto_cpu_timer total;
-
     m_size = count;
     m_gen = gen;
     cell_vector = new VoronoiCell[count];
@@ -57,8 +55,6 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
     TaskGraph taskGraph; buildTaskGraph(&taskGraph, points);
     taskGraph.processTasks(6);
     completedCells = 0;
-
-    //std::cout << "total:\n";
   }
 
   if (writeToFile) writeDataToOBJ();

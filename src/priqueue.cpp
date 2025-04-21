@@ -51,7 +51,7 @@ PRIQUEUE::~PriQueue()
 {
 }
 
-// 25.01% - 32.13% ??? Need new profiling data
+// 9.9%
 PRIQUEUE_TEMPLATE
 void PRIQUEUE::push(T* event)
 {
