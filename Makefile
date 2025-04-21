@@ -71,7 +71,7 @@ globals.o: src/globals.h src/globals.cpp
 mp_sample_generator.o: src/mp_sample_generator.h src/mp_sample_generator.cpp
 	$(COMPILER) src/mp_sample_generator.cpp $(FLAGS) -c
 
-tests.o: test/tests.cpp test/voronoi_tests.cpp test/priqueue_tests.cpp
+tests.o: test/tests.cpp test/voronoi_tests.cpp test/priqueue_tests.cpp src/priqueue.cpp
 	$(COMPILER) test/tests.cpp $(FLAGS) -c
 
 

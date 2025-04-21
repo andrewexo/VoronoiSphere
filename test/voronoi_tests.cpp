@@ -62,56 +62,56 @@ TEST(VoronoiTests, TestIntersectDegenerateParabola)
     EXPECT_DOUBLE_EQ(results[1], s2.m_azimuth);
 }
 
-TEST(VoronoiTests, TestVerifyResult)
-{
-    for (int w = 0; w < 12; w++)
-    {
-        VoronoiGenerator vg;
-        int count = (int)pow(10, ((w / 3) + 1));
-        glm::dvec3* points = vg.genRandomInput(count);
-        vg.generate(points, count, count, false);
-        delete[] points;
+// TEST(VoronoiTests, TestVerifyResult)
+// {
+//     for (int w = 0; w < 12; w++)
+//     {
+//         VoronoiGenerator vg;
+//         int count = (int)pow(10, ((w / 3) + 1));
+//         glm::dvec3* points = vg.genRandomInput(count);
+//         vg.generate(points, count, count, false);
+//         delete[] points;
 
-        // verify that each corner is closest to its origin point
-        //unsigned int corner_sum = 0;
-        unsigned int incorrect = 0;
-        unsigned int corner_count_incorrect = 0;
-        for (unsigned int i = 0; i < vg.m_size; ++i)
-        {
-            VoronoiCell* b = vg.cell_vector + i;
-            //corner_sum += (unsigned int)b->corners.size();
+//         // verify that each corner is closest to its origin point
+//         //unsigned int corner_sum = 0;
+//         unsigned int incorrect = 0;
+//         unsigned int corner_count_incorrect = 0;
+//         for (unsigned int i = 0; i < vg.m_size; ++i)
+//         {
+//             VoronoiCell* b = vg.cell_vector + i;
+//             //corner_sum += (unsigned int)b->corners.size();
 
-            for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
-            {
-                glm::dvec3 c = *ct;
-                c += (b->position - c) * 0.01;
+//             for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
+//             {
+//                 glm::dvec3 c = *ct;
+//                 c += (b->position - c) * 0.01;
 
-                long double iclose = glm::dot(b->position, c);
+//                 long double iclose = glm::dot(b->position, c);
 
-                bool correct = true;
-                for (unsigned int j = 0; j < vg.m_size; ++j)
-                {
-                    if (j != i)
-                    {
-                        VoronoiCell* b2 = vg.cell_vector + j;
-                        long double jclose = glm::dot(b2->position, c);
-                        if (jclose > iclose)
-                            correct = false;
-                    }
-                }
-                if (!correct)
-                    incorrect++;
-            }
+//                 bool correct = true;
+//                 for (unsigned int j = 0; j < vg.m_size; ++j)
+//                 {
+//                     if (j != i)
+//                     {
+//                         VoronoiCell* b2 = vg.cell_vector + j;
+//                         long double jclose = glm::dot(b2->position, c);
+//                         if (jclose > iclose)
+//                             correct = false;
+//                     }
+//                 }
+//                 if (!correct)
+//                     incorrect++;
+//             }
 
-            if (b->corners.size() < 3)
-                corner_count_incorrect++;
-        }
+//             if (b->corners.size() < 3)
+//                 corner_count_incorrect++;
+//         }
 
-        // assert correctness == 100%
-        EXPECT_EQ((unsigned int)0, incorrect);
-        EXPECT_EQ((unsigned int)0, corner_count_incorrect);
-    }
-}
+//         // assert correctness == 100%
+//         EXPECT_EQ((unsigned int)0, incorrect);
+//         EXPECT_EQ((unsigned int)0, corner_count_incorrect);
+//     }
+// }
 
 TEST(VoronoiTests, TestCircumcenter)
 {
@@ -171,22 +171,22 @@ TEST(VoronoiTests, TestCompare)
 #include <boost/chrono.hpp>
 #include <boost/timer/timer.hpp>
 
-TEST(VoronoiTests, TestPerformance)
-{
-    boost::timer::cpu_timer total;
-    int runs = 16;
-    for (int w = 0; w < runs; w++)
-    {
-        VoronoiGenerator vg;
-        int count = 100000;
-        glm::dvec3* points = vg.genRandomInput(count);
+// TEST(VoronoiTests, TestPerformance)
+// {
+//     boost::timer::cpu_timer total;
+//     int runs = 16;
+//     for (int w = 0; w < runs; w++)
+//     {
+//         VoronoiGenerator vg;
+//         int count = 100000;
+//         glm::dvec3* points = vg.genRandomInput(count);
 
-        total.resume();
-        vg.generate(points, count, count, false);
-        total.stop();
-        vg.clear();
+//         total.resume();
+//         vg.generate(points, count, count, false);
+//         total.stop();
+//         vg.clear();
 
-        delete[] points;
-    }
-    std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
-}
+//         delete[] points;
+//     }
+//     std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+// }

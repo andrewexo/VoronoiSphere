@@ -55,14 +55,8 @@ class PriQueue
         void addSkips(PriQueueNode<T>* node, PriQueueNode<T>** previous);
 
         // tests
-        FRIEND_TEST(PriQueueTests, TestInsertLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertOutOfOrderLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertReverseOrderLinkedList);
-        FRIEND_TEST(PriQueueTests, TestInsertSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseHeadSkips);
-        FRIEND_TEST(PriQueueTests, TestEraseTailSkips);
-        FRIEND_TEST(PriQueueTests, TestErasePopPushSkips);
+        FRIEND_TEST(PriQueueTests, TestPushPop);
+        FRIEND_TEST(PriQueueTests, TestErase);
 };
 
 #endif
