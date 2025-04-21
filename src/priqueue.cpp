@@ -260,8 +260,6 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
 
     if (node == nullptr) return;
 
-    assert(node->count <= ROLL_LENGTH);
-
     if (node->count > 1)
     {
         for (size_t i = 0; i < node->count; i++) {
@@ -271,7 +269,6 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
                 return;
             }
         }
-        assert(false);
     }
 
     if (node->prev == nullptr)
@@ -334,8 +331,8 @@ size_t PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::audit()
 }
 
 // Forward declare template types so compiler generates code to link against
-template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>, 4, 4>;
-template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>, 4, 4>;
+template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>, 8, 32>;
+template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>, 8, 32>;
 
-template class PriQueueNode<CircleEvent<Increasing>, 4, 4>;
-template class PriQueueNode<CircleEvent<Decreasing>, 4, 4>;
+template class PriQueueNode<CircleEvent<Increasing>, 8, 32>;
+template class PriQueueNode<CircleEvent<Decreasing>, 8, 32>;
