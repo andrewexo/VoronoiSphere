@@ -4,10 +4,13 @@
 #include <algorithm>
 #include "memblock.h"
 
+#define PNODE PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>
+#define PRIQUEUE PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>
+#define PNODE_TEMPLATE template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+#define PRIQUEUE_TEMPLATE template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 
-
-template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::PriQueueNode(T* event)
+PNODE_TEMPLATE
+PNODE::PriQueueNode(T* event)
 {
     count = 1;
     this->event[0] = event;
@@ -15,15 +18,15 @@ PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::PriQueueNode(T* event)
     clear();
 }
 
-template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::PriQueueNode()
+PNODE_TEMPLATE
+PNODE::PriQueueNode()
 {
     count = 0;
     clear();
 }
 
-template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-void PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::clear()
+PNODE_TEMPLATE
+void PNODE::clear()
 {
     for (size_t i = count; i < ROLL_LENGTH; i++)
         event[i] = nullptr;
@@ -36,25 +39,25 @@ void PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>::clear()
     prev = nullptr;
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::PriQueue()
+PRIQUEUE_TEMPLATE
+PRIQUEUE::PriQueue()
 {
     head = nullptr;
     distribution = std::uniform_int_distribution<int>(0, DIST_MAX);
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::~PriQueue()
+PRIQUEUE_TEMPLATE
+PRIQUEUE::~PriQueue()
 {
 }
 
-// 25.01% - 32.13%
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::push(T* event)
+// 25.01% - 32.13% ??? Need new profiling data
+PRIQUEUE_TEMPLATE
+void PRIQUEUE::push(T* event)
 {
     if (head == nullptr)
     {
-        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>(event);
+        PNODE* node = new PNODE(event);
         head = node;
         return;
     }
@@ -69,7 +72,7 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::push(T* event)
             return;
         }
 
-        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>(event);
+        PNODE* node = new PNODE(event);
         node->next = head;
         head->prev = node;
         for (size_t i = 0; i < SKIP_DEPTH; i++)
@@ -84,12 +87,12 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::push(T* event)
     }
 
     int skip_level = SKIP_DEPTH_sub1;
-    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* nodes[SKIP_DEPTH];
-    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* curr = head;
+    PNODE* nodes[SKIP_DEPTH];
+    PNODE* curr = head;
 
     while (true)
     {
-        PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* next = curr->skips[skip_level];
+        PNODE* next = curr->skips[skip_level];
         if (curr->skips[skip_level] != nullptr && 
             comp(event, next->event[0]))
         {
@@ -125,7 +128,7 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::push(T* event)
     }
 
     // split curr into two nodes
-    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = new PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>();
+    PNODE* node = new PNODE();
     size_t i = 1;
     for (; i < ROLL_LENGTH; i++) { 
         if (comp(curr->event[i], event)) {
@@ -180,8 +183,8 @@ inline int log2_5(int n)
     return r;
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous)
+PRIQUEUE_TEMPLATE
+void PRIQUEUE::addSkips(PNODE* node, PNODE** previous)
 {
     int skip_count = (int) (SKIP_DEPTH - log2_5(std::max((int)(distribution(generator)), 1)));
 
@@ -197,8 +200,8 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::addSkips(PriQueueNode<T, SKI
     }
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-T* PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::top()
+PRIQUEUE_TEMPLATE
+T* PRIQUEUE::top()
 {
     if (head == nullptr)
         return nullptr;
@@ -206,8 +209,8 @@ T* PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::top()
         return head->event[0];
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::pop()
+PRIQUEUE_TEMPLATE
+void PRIQUEUE::pop()
 {
     if (head == nullptr) return;
 
@@ -246,16 +249,16 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::pop()
     delete oldHead;
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-bool PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::empty()
+PRIQUEUE_TEMPLATE
+bool PRIQUEUE::empty()
 {
     return head == nullptr;
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
+PRIQUEUE_TEMPLATE
+void PRIQUEUE::erase(T* event)
 {
-    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node = (PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>*)event->pqn;
+    PNODE* node = (PNODE*)event->pqn;
     event->pqn = nullptr;
 
     if (node == nullptr) return;
@@ -312,11 +315,11 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
     }
 }
 
-template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
-size_t PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::audit()
+PRIQUEUE_TEMPLATE
+size_t PRIQUEUE::audit()
 {
     size_t count = 0;
-    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* curr = head;
+    PNODE* curr = head;
     while (curr != nullptr) {
         count += curr->count;
         for (size_t i = 0; i < curr->count; i++) {
