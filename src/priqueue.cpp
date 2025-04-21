@@ -216,7 +216,7 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::pop()
     if (head->count > 1)
     {
         memmove(head->event, head->event+1, (head->count-1) * sizeof(T*));
-        head->count--;
+        head->event[--(head->count)] = nullptr;
         return;
     }
 
@@ -262,25 +262,25 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
 
     assert(node->count <= ROLL_LENGTH);
 
+    if (node->count > 1)
+    {
+        for (size_t i = 0; i < node->count; i++) {
+            if (node->event[i] == event) {
+                memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(T*));
+                node->event[--(node->count)] = nullptr;
+                return;
+            }
+        }
+        assert(false);
+    }
+
     if (node->prev == nullptr)
     {
         pop();
     }
     else if (node->next == nullptr)
     {
-        if (node->count > 1)
-        {
-            for (size_t i = 0; i < node->count; i++) {
-                if (node->event[i] == event) {
-                        memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(T*));
-                    node->count--;
-                    return;
-                }
-            }
-        }
-        assert(node->count == 1);
         node->prev->next = nullptr;
-
         for (size_t i = 0; i < SKIP_DEPTH; i++)
         {
             if (node->prev_skips[i] == nullptr) break;
@@ -290,17 +290,6 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
     }
     else
     {
-        if (node->count > 1)
-        {
-            for (size_t i = 0; i < node->count; i++) {
-                if (node->event[i] == event) {
-                    memmove(node->event+i, node->event+i+1, (node->count-i-1) * sizeof(T*));
-                    node->count--;
-                    return;
-                }
-            }
-        }
-        assert(node->count == 1);
         node->prev->next = node->next;
         node->next->prev = node->prev;
 
@@ -324,6 +313,24 @@ void PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::erase(T* event)
         }
         delete node;
     }
+}
+
+template <typename T, typename Compare, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
+size_t PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>::audit()
+{
+    size_t count = 0;
+    PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* curr = head;
+    while (curr != nullptr) {
+        count += curr->count;
+        for (size_t i = 0; i < curr->count; i++) {
+            assert(curr->event[i] != nullptr);
+        }
+        for (size_t i = curr->count; i < ROLL_LENGTH; i++) {
+            assert(curr->event[i] == nullptr);
+        }
+        curr = curr->next;
+    }
+    return count;
 }
 
 // Forward declare template types so compiler generates code to link against

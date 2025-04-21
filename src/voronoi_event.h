@@ -13,6 +13,7 @@ class CircleEvent
 {
     public:
 
+        CircleEvent();
         CircleEvent(double polar, double polar_, const glm::dvec3 & c);
 
         double polar, polar_small;

@@ -56,9 +56,13 @@ class PriQueue
 
         void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
 
+        size_t audit();
+
         // tests
         FRIEND_TEST(PriQueueTests, TestPushPop);
-        FRIEND_TEST(PriQueueTests, TestErase);
+        FRIEND_TEST(PriQueueTests, TestPushPop2);
+        FRIEND_TEST(PriQueueTests, TestErase);  
+        FRIEND_TEST(PriQueueTests, TestErase2);
 };
 
 #endif

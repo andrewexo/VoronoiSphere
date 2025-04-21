@@ -3,6 +3,12 @@
 #include <math.h>
 
 template <Order O>
+CircleEvent<O>::CircleEvent()
+{
+    pqn = nullptr;
+}
+
+template <Order O>
 CircleEvent<O>::CircleEvent(double polar, double polar_small, const glm::dvec3 & c)
 {
     this->polar = polar;

@@ -22,23 +22,11 @@ const int skipNodeOffset = OFFSETOF(MemBlock<O>, skipNode);
 template <Order O>
 const int circleEventOffset = OFFSETOF(MemBlock<O>, circleEvent);
 
-// template <Order O>
-// const int priQueueNodeOffset = OFFSETOF(MemBlock<O>, priQueueNodePtr);
-
 template <Order O>
 const int beachArcOffset = OFFSETOF(MemBlock<O>, skipNode.m_beachArc);
 
 template <Order O>
 const int ceTOsn = skipNodeOffset<O> - circleEventOffset<O>;
-
-// template <Order O>
-// const int pqnTOce = priQueueNodeOffset<O> - circleEventOffset<O>;
-
-// template <Order O>
-// inline PriQueueNode<O>** getPriQueueNodePtrFromCircleEvent(CircleEvent<O>* circleEvent)
-// {
-//     return (PriQueueNode<O>**) ((char*)circleEvent + pqnTOce<O>);
-// }
 
 template <Order O>
 inline SkipNode<O>* getSkipNodeFromCircleEvent(CircleEvent<O>* circleEvent)
