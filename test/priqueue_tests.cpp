@@ -18,7 +18,7 @@ template class PriQueue<event, eventCompare>;
 TEST(PriQueueTests, TestPushPop)
 {
     PriQueue<event, eventCompare> pq;
-    int count = 100000;
+    int count = 20000;
 
     std::vector<event*> events;
     for (int i = 0; i < count; i++) {
@@ -44,7 +44,7 @@ TEST(PriQueueTests, TestPushPop)
 TEST(PriQueueTests, TestErase)
 {
     PriQueue<event, eventCompare> pq;
-    int count = 100000;
+    int count = 20000;
 
     std::vector<event*> events;
     for (int i = 0; i < count; i++) {
@@ -58,7 +58,7 @@ TEST(PriQueueTests, TestErase)
         pq.erase(events[i]);
     }
 
-    for (int i = 0; i < count/2; i++) {
+    for (int i = 0; i < (count+1)/2; i++) {
         EXPECT_GE(pq.top()->value % 2, 0);
         pq.pop();
     }

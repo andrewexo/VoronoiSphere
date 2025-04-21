@@ -8,8 +8,8 @@
 #include "gtest/gtest_prod.h"
 
 #define SKIP_DEPTH 4
-#define ROLL_LENGTH 4
-static_assert(ROLL_LENGTH == 4); // TODO: make this dynamic
+#define ROLL_LENGTH 16
+static_assert(ROLL_LENGTH % 2 == 0);
 
 template <typename T>
 class PriQueueNode

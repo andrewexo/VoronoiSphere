@@ -127,74 +127,31 @@ void PriQueue<T, Compare>::push(T* event)
 
     // split curr into two nodes
     PriQueueNode<T>* node = new PriQueueNode<T>();
-    //  Code below assumes ROLL_LENGTH is 4
     size_t i = 1;
     for (; i < ROLL_LENGTH; i++) { 
         if (comp(curr->event[i], event)) {
             break;
         }
     }
-    if (i == 1) {
-        node->event[0] = curr->event[1];
-        node->event[1] = curr->event[2];
-        node->event[2] = curr->event[3];
-        curr->event[1] = event;
+    if (i < ROLL_LENGTH/2) {
+        memmove(node->event, curr->event+(ROLL_LENGTH/2-1), (ROLL_LENGTH/2+1) * sizeof(T*));
+        memmove(curr->event+i+1, curr->event+i, (ROLL_LENGTH/2-i-1) * sizeof(T*));
+        curr->event[i] = event;
         event->pqn = curr;
-    } else if (i == 2) {
-        node->event[0] = event;
-        node->event[1] = curr->event[2];
-        node->event[2] = curr->event[3];
-    } else if (i == 3) {
-        node->event[0] = curr->event[2];
-        node->event[1] = event;
-        node->event[2] = curr->event[3];
-    } else { // i == 4
-        node->event[0] = curr->event[2];
-        node->event[1] = curr->event[3];
-        node->event[2] = event;
     }
-    node->event[0]->pqn = node;
-    node->event[1]->pqn = node;
-    node->event[2]->pqn = node;
-    curr->event[2] = nullptr;
-    curr->event[3] = nullptr;
-    curr->count = 2;
-    node->count = 3;
-    
-    // bool inserted = false;
-    // CircleEvent<O>* displaced = nullptr;
-    // for (size_t i = 1; i < ROLL_LENGTH/2; i++) {
-    //     if (comp(curr->event[i], event)) {
-    //         displaced = curr->event[ROLL_LENGTH/2-1];
-    //         memmove(curr->event+i+1, curr->event+i, (ROLL_LENGTH/2-1-i) * sizeof(CircleEvent<O>*));
-    //         curr->event[i] = event;
-    //         event->pqn = curr;
-    //         inserted = true;
-    //         break;
-    //     }
-    // }
-    // if (inserted) {
-    //     node->event[0] = displaced;
-    //     displaced->pqn = node;
-    //     size_t j = 1;
-    //     for (size_t i = ROLL_LENGTH/2; i < ROLL_LENGTH; i++) {
-    //         node->event[j++] = curr->event[i];
-    //         curr->event[i]->pqn = node;
-    //         curr->event[i] = nullptr;
-    //     }
-    // } else {
-    //     size_t j = 0;
-    //     for (size_t i = ROLL_LENGTH/2; i < ROLL_LENGTH; i++) {
-    //         if (comp(curr->event[i], event)) {
-    //             node->event[j++] = event;
-    //             event->pqn = node;
-    //         }
-    //         node->event[j++] = curr->event[i];
-    //         curr->event[i]->pqn = node;
-    //     }
-    // }
-    // curr->count = (ROLL_LENGTH+1)/2;
-    // node->count = ROLL_LENGTH/2+1;
+    else {
+        memmove(node->event, curr->event+(ROLL_LENGTH/2), (i - ROLL_LENGTH/2) * sizeof(T*));
+        node->event[i-ROLL_LENGTH/2] = event;
+        memmove(node->event+(i-ROLL_LENGTH/2+1), curr->event+i, (ROLL_LENGTH-i) * sizeof(T*));
+    }
+    for (size_t j = 0; j < ROLL_LENGTH/2+1; j++) {
+        node->event[j]->pqn = node;
+    }
+    node->count = ROLL_LENGTH/2+1;
+    for (size_t j = ROLL_LENGTH/2; j < ROLL_LENGTH; j++) {
+        curr->event[j] = nullptr;
+    }
+    curr->count = ROLL_LENGTH/2;
     
     // insert node into list
     node->next = curr->next;
