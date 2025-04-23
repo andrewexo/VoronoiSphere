@@ -49,7 +49,7 @@ class VoronoiSweeper
     double m_sweeplineSmall;
 
     BeachLine<O> m_beachLine;
-    PriQueue<CircleEvent<O>, VoronoiEventCompare<O>, 8, 32> m_circles;
+    PriQueue<CircleEvent<O>, VoronoiEventCompare<O>, 8, 64> m_circles;
 
     std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;

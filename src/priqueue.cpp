@@ -334,8 +334,8 @@ size_t PRIQUEUE::audit()
 }
 
 // Forward declare template types so compiler generates code to link against
-template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>, 8, 32>;
-template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>, 8, 32>;
+template class PriQueue<CircleEvent<Increasing>, VoronoiEventCompare<Increasing>, 8, 64>;
+template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>, 8, 64>;
 
-template class PriQueueNode<CircleEvent<Increasing>, 8, 32>;
-template class PriQueueNode<CircleEvent<Decreasing>, 8, 32>;
+template class PriQueueNode<CircleEvent<Increasing>, 8, 64>;
+template class PriQueueNode<CircleEvent<Decreasing>, 8, 64>;
