@@ -54,7 +54,8 @@ class PriQueue
         std::default_random_engine generator;
         std::uniform_int_distribution<int> distribution;
 
-        void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
+        void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, 
+                      PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
 
         size_t audit();
 
