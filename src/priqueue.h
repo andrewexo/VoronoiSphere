@@ -63,6 +63,7 @@ class PriQueue
         FRIEND_TEST(PriQueueTests, TestPushPop2);
         FRIEND_TEST(PriQueueTests, TestErase);  
         FRIEND_TEST(PriQueueTests, TestErase2);
+        FRIEND_TEST(PriQueueTests, TestRollLengthPerformance);
 };
 
 #endif

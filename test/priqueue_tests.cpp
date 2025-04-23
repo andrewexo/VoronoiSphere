@@ -2,6 +2,8 @@
 #include "../src/priqueue.cpp"
 #include "gtest/gtest.h"
 #include <vector>
+#include <chrono>
+#include <iostream>
 
 struct event {
     size_t value;
@@ -124,4 +126,79 @@ TEST(PriQueueTests, TestErase2)
     for (size_t i = 0; i < count; i++) {
         delete events[i];
     }
+}
+
+// Template function to test a specific roll length
+template <size_t RollLength>
+std::pair<double, double> testRollLengthPerformance(size_t count) {
+    PriQueue<event, eventCompare, 8, RollLength> pq;
+    std::vector<event*> events;
+    
+    // Create events
+    for (size_t i = 0; i < count; i++) {
+        event* e = new event({(size_t)rand(), nullptr});
+        events.push_back(e);
+    }
+    
+    // Measure push performance
+    auto start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < count; i++) {
+        pq.push(events[i]);
+    }
+    auto pushEnd = std::chrono::high_resolution_clock::now();
+    double pushTime = std::chrono::duration<double, std::milli>(pushEnd - start).count();
+    
+    // Measure pop performance
+    start = std::chrono::high_resolution_clock::now();
+    for (size_t i = 0; i < count; i++) {
+        pq.pop();
+    }
+    auto popEnd = std::chrono::high_resolution_clock::now();
+    double popTime = std::chrono::duration<double, std::milli>(popEnd - start).count();
+    
+    // Cleanup
+    for (size_t i = 0; i < count; i++) {
+        delete events[i];
+    }
+    
+    return std::make_pair(pushTime, popTime);
+}
+
+TEST(PriQueueTests, TestRollLengthPerformance)
+{
+    const size_t count = 10000;
+    const std::vector<int> rollLengths = {2, 4, 8, 16, 32};
+    
+    std::cout << "\nRoll Length Performance Test Results:" << std::endl;
+    
+    // Run tests for each roll length
+    for (auto rollLength : rollLengths) {
+        std::pair<double, double> result;
+        
+        switch (rollLength) {
+            case 2:
+                result = testRollLengthPerformance<2>(count);
+                break;
+            case 4:
+                result = testRollLengthPerformance<4>(count);
+                break;
+            case 8:
+                result = testRollLengthPerformance<8>(count);
+                break;
+            case 16:
+                result = testRollLengthPerformance<16>(count);
+                break;
+            case 32:
+                result = testRollLengthPerformance<32>(count);
+                break;
+            default:
+                continue;
+        }
+        
+        std::cout << "Roll Length " << rollLength << ": Push time: " << result.first 
+                  << "ms, Pop time: " << result.second << "ms" << std::endl;
+    }
+    
+    // Make sure test passes - we're just measuring performance
+    EXPECT_TRUE(true);
 }
