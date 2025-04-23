@@ -167,7 +167,7 @@ std::pair<double, double> testRollLengthPerformance(size_t count) {
 TEST(PriQueueTests, TestRollLengthPerformance)
 {
     const size_t count = 10000;
-    const std::vector<int> rollLengths = {2, 4, 8, 16, 32};
+    const std::vector<int> rollLengths = {2, 4, 8, 16, 32, 64};
     
     std::cout << "\nRoll Length Performance Test Results:" << std::endl;
     
@@ -190,6 +190,9 @@ TEST(PriQueueTests, TestRollLengthPerformance)
                 break;
             case 32:
                 result = testRollLengthPerformance<32>(count);
+                break;
+            case 64:
+                result = testRollLengthPerformance<64>(count);
                 break;
             default:
                 continue;
