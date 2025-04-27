@@ -10,6 +10,9 @@
 #include <boost/chrono.hpp>
 #include <boost/timer/timer.hpp>
 #include <mutex>
+#include <atomic>
+#include <thread>
+#include <future>
 
 namespace VorGen {
 
@@ -20,6 +23,132 @@ namespace VorGen {
 // Global mutex for synchronizing console output
 ::std::mutex cout_mutex;
 #endif
+
+struct TaskDataCells
+{
+    VoronoiCell* cells;
+    glm::dvec3* points;
+    unsigned int start;
+    unsigned int end;
+};
+
+struct TaskDataCellsResize
+{
+    VoronoiCell* cells;
+    glm::dvec3* points;
+    unsigned int start;
+    unsigned int end;
+    ::std::vector<VoronoiSite>* sites;
+    unsigned int size;
+};
+
+struct TaskDataSites
+{
+    VoronoiCell* cells;
+    unsigned int start;
+    unsigned int end;
+    ::std::vector<VoronoiSite>* sites;
+};
+
+struct TaskDataSitesCap
+{
+    VoronoiCell* cells;
+    glm::dvec3 origin;
+    glm::dvec3 originY;
+    glm::dvec3 originZ;
+    unsigned int start;
+    unsigned int end;
+    ::std::vector<VoronoiSite>* sites;
+};
+
+struct TaskDataDualSort
+{
+    ::std::vector<VoronoiSite>* sites;
+    ::std::promise<VoronoiSite*>* p_temps;
+    ::std::promise<bool>* p_done;
+    ::std::future<VoronoiSite*> f_temps;
+    ::std::future<bool> f_done;
+};
+
+struct TaskDataSweep
+{
+    ::std::vector<VoronoiSite>* sites;
+    unsigned int gen;
+    uint8_t taskId;
+};
+
+struct TaskDataSortCorners
+{
+    VoronoiCell* cell_vector;
+    unsigned int start;
+    unsigned int end;
+};
+
+class InitCellsTask : public Task
+{
+    public:
+        ~InitCellsTask() {};
+        void process();
+        TaskDataCells td;
+};
+
+class InitCellsAndResizeSitesTask : public Task
+{
+    public:
+        ~InitCellsAndResizeSitesTask() {};
+        void process();
+        TaskDataCellsResize td;
+};
+
+template <Axis A>
+class InitSitesTask : public Task
+{
+    public:
+        ~InitSitesTask() {};
+        void process();
+        TaskDataSites td;
+};
+
+class InitSitesCapTask : public Task
+{
+    public:
+        ~InitSitesCapTask() {};
+        void process();
+        TaskDataSitesCap td;
+};
+
+class SortPoints1Task : public Task
+{
+    public:
+        ~SortPoints1Task() {};
+        void process();
+        TaskDataDualSort td;
+};
+
+class SortPoints2Task : public Task
+{
+    public:
+        ~SortPoints2Task() {};
+        void process();
+        TaskDataDualSort td;
+};
+
+template <Order O, Axis A>
+class SweepTask : public Task
+{
+    public:
+        ~SweepTask() {};
+        void process();
+        TaskDataSweep td;
+};
+
+class SortCellCornersTask : public Task
+{
+    public:
+        ~SortCellCornersTask() {};
+        void process();
+        TaskDataSortCorners td;
+};
 
 VoronoiGenerator::VoronoiGenerator()
 {
