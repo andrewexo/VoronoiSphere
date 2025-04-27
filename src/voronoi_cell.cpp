@@ -3,17 +3,6 @@
 #include "globals.h"
 #include <algorithm>
 
-VoronoiCell::VoronoiCell()
-{
-}
-
-VoronoiCell::VoronoiCell(const glm::dvec3 & p)
-{	
-    m_owner.store(0);
-    m_arcs = 0;
-    position = p;
-    corners.reserve(8);
-}
 
 void VoronoiCell::addCorner(const glm::dvec3 & c, uint8_t thread)
 {
@@ -46,6 +35,17 @@ void VoronoiCell::decrement(uint8_t thread)
     }
     else
         m_owner.fetch_and(~thread); // revoke ownership
+}
+
+// VoronoiCell implementations
+VoronoiCell::VoronoiCell() {}
+
+VoronoiCell::VoronoiCell(const glm::dvec3 & p)
+{
+    m_arcs = 0;
+    position = p;
+    corners.reserve(8);
+    m_owner.store(0);
 }
 
 void VoronoiCell::sortCorners()
@@ -105,7 +105,7 @@ void VoronoiCell::computeCentroid()
         glm::dvec4 t_corner = transform * c4;
 
         double a = (prev_t_corner.x * t_corner.y) 
-                 - (t_corner.x * prev_t_corner.y);
+                    - (t_corner.x * prev_t_corner.y);
         cx += (prev_t_corner.x + t_corner.x) * a;
         cy += (prev_t_corner.y + t_corner.y) * a;
         area += a;

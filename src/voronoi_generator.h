@@ -24,13 +24,14 @@ class VoronoiGenerator
 
         glm::dvec3* genRandomInput(int count);
         void generate(glm::dvec3* points, int count, int gen, bool writeToFile);
+        void generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, std::vector<VoronoiCell>& out);
         void clear();
 
     private:
 
         SampleGenerator sample_generator;
         VoronoiCell* cell_vector;
-        
+
         // max number of cells to generate
         unsigned int m_size;
 
@@ -49,7 +50,7 @@ class VoronoiGenerator
         inline void writeCellOBJ(std::ofstream & os, int i);
 
         void buildTaskGraph(TaskGraph* tg, glm::dvec3* points);
-
+        void buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin, glm::dvec3* points);
         struct SyncXYZ
         {
             SyncTask* syncX;
@@ -61,7 +62,12 @@ class VoronoiGenerator
         inline void generateInitSitesTasks(TaskGraph* tg, SyncTask* syncIn, SyncXYZ & syncOut);
         inline void generateSortPointsTasks(TaskGraph* tg, SyncXYZ & syncInOut);
         inline void generateSweepTasks(TaskGraph* tg, SyncXYZ & syncIn, SyncTask* & syncOut);
-        inline void generateSortCellCornersTasks(TaskGraph* tg, SyncTask* syncIn);
+        inline void generateSortCellCornersTasks(TaskGraph* tg, SyncTask* syncIn, size_t threads);
+
+        inline void generateCapInitCellsTasks(TaskGraph* tg, glm::dvec3* points, SyncTask* & syncOut);
+        inline void generateCapInitSitesTasks(TaskGraph* tg, SyncTask* & syncInOut, const glm::dvec3 & origin);
+        inline void generateCapSortPointsTasks(TaskGraph* tg, SyncTask* & syncInOut);
+        inline void generateCapSweepTasks(TaskGraph* tg, SyncTask* & syncInOut);
 
         // tests
         FRIEND_TEST(VoronoiTests, TestIntersect);
@@ -93,6 +99,17 @@ struct TaskDataCellsResize
 struct TaskDataSites
 {
     VoronoiCell* cells;
+    unsigned int start;
+    unsigned int end;
+    std::vector<VoronoiSite>* sites;
+};
+
+struct TaskDataSitesCap
+{
+    VoronoiCell* cells;
+    glm::dvec3 origin;
+    glm::dvec3 originY;
+    glm::dvec3 originZ;
     unsigned int start;
     unsigned int end;
     std::vector<VoronoiSite>* sites;
@@ -144,6 +161,14 @@ class InitSitesTask : public Task
         ~InitSitesTask() {};
         void process();
         TaskDataSites td;
+};
+
+class InitSitesCapTask : public Task
+{
+    public:
+        ~InitSitesCapTask() {};
+        void process();
+        TaskDataSitesCap td;
 };
 
 class SortPoints1Task : public Task

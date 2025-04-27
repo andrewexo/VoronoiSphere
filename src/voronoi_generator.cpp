@@ -31,12 +31,12 @@ VoronoiGenerator::VoronoiGenerator(unsigned int seed) : sample_generator(seed)
 
 VoronoiGenerator::~VoronoiGenerator()
 {
-  delete[] cell_vector;
+  if (cell_vector) delete[] cell_vector;
 }
 
 void VoronoiGenerator::clear()
 {
-  delete[] cell_vector;
+  if (cell_vector) delete[] cell_vector;
   cell_vector = NULL;
 }
 
@@ -54,10 +54,23 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
 
     TaskGraph taskGraph; buildTaskGraph(&taskGraph, points);
     taskGraph.processTasks(6);
-    completedCells = 0;
+    completedCells = 0; // reset after generation for next generation
   }
 
   if (writeToFile) writeDataToOBJ();
+}
+
+void VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, std::vector<VoronoiCell>& out)
+{
+    m_size = count;
+    m_gen = count;
+    cell_vector = new VoronoiCell[count];
+
+    TaskGraph taskGraph; buildCapTaskGraph(&taskGraph, origin, points);
+    taskGraph.processTasks(2);
+    completedCells = 0; // reset after generation for next generation
+
+    //out.assign(cell_vector, cell_vector + count);
 }
 
 inline void VoronoiGenerator
@@ -133,6 +146,38 @@ inline void VoronoiGenerator
   tg->addDependency(icrt1, sync);
   tg->addDependency(icrt2, sync);
   tg->addDependency(icrt3, sync);
+
+  syncOut = sync;
+}
+
+inline void VoronoiGenerator
+::generateCapInitCellsTasks(
+  TaskGraph * tg, 
+  glm::dvec3 * points, 
+  SyncTask *& syncOut)
+{
+  InitCellsTask* ict = new InitCellsTask;
+  ict->td = { 
+    cell_vector, 
+    points, 
+    0,								  
+    (unsigned int)(1.f / 2.f * m_size) - 1 };
+  tg->addTask(ict);
+
+  InitCellsAndResizeSitesTask* icrt = new InitCellsAndResizeSitesTask;
+  icrt->td = { 
+    cell_vector, 
+    points, 
+    (unsigned int)(1.f / 2.f * m_size), 
+    m_size - 1, 
+    &m_sitesX, 
+    m_size };
+  tg->addTask(icrt);
+
+  SyncTask* sync = new SyncTask;
+  tg->addTask(sync);
+  tg->addDependency(ict, sync);
+  tg->addDependency(icrt, sync);
 
   syncOut = sync;
 }
@@ -219,6 +264,60 @@ inline void VoronoiGenerator
   syncOut.syncZ = syncZ;
 }
 
+inline void VoronoiGenerator
+::generateCapInitSitesTasks(
+  TaskGraph * tg, 
+  SyncTask *& syncInOut,
+  const glm::dvec3 & origin)
+{
+  InitSitesCapTask* ist1 = new InitSitesCapTask;
+  InitSitesCapTask* ist2 = new InitSitesCapTask;
+
+  glm::dvec3 helper;
+  if (origin.x < origin.y && origin.x < origin.z)
+      helper = glm::dvec3(1.0, 0.0, 0.0);
+  else if (origin.y < origin.z)
+      helper = glm::dvec3(0.0, 1.0, 0.0);
+  else
+      helper = glm::dvec3(0.0, 0.0, 1.0);
+  glm::dvec3 originY = glm::cross(origin,helper);
+  glm::dvec3 originZ = glm::cross(origin,originY);
+
+  ist1->td = { 
+    cell_vector, 
+    origin,
+    originY,
+    originZ,
+    0, 
+    (unsigned int)m_size / 2 - 1, 
+    &m_sitesX
+  };
+
+  ist2->td = { 
+    cell_vector,
+    origin,
+    originY,
+    originZ,
+    (unsigned int)m_size / 2,
+    (unsigned int)m_size - 1,	  
+    &m_sitesX
+  };
+
+  tg->addTask(ist1);
+  tg->addTask(ist2);
+
+  tg->addDependency(syncInOut, ist1);
+  tg->addDependency(syncInOut, ist2);
+
+  SyncTask* syncX = new SyncTask;
+  tg->addTask(syncX);
+
+  tg->addDependency(ist1, syncX);
+  tg->addDependency(ist2, syncX);
+
+  syncInOut = syncX;
+}
+
 inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & syncInOut)
 {
   SortPoints1Task* sp1 = new SortPoints1Task;
@@ -290,6 +389,36 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
   syncInOut.syncZ = syncZ;
 }
 
+inline void VoronoiGenerator::generateCapSortPointsTasks(TaskGraph * tg, SyncTask* & syncInOut)
+{
+  SortPoints1Task* sp1 = new SortPoints1Task;
+  SortPoints2Task* sp2 = new SortPoints2Task;
+
+  std::promise<VoronoiSite*>* p_temps = new std::promise<VoronoiSite*>[2];
+  std::promise<bool>* p_done = new std::promise<bool>[2];
+
+  sp1->td = { &m_sitesX, p_temps, p_done, 
+                         (p_temps+1)->get_future(), 
+                         (p_done+1)->get_future() };
+  sp2->td = { &m_sitesX, p_temps + 1, p_done + 1,             
+                         p_temps->get_future(), 
+                         p_done->get_future() };
+
+  tg->addTask(sp1);
+  tg->addTask(sp2);
+
+  tg->addDependency(syncInOut, sp1);
+  tg->addDependency(syncInOut, sp2);
+
+  SyncTask* syncX = new SyncTask;
+  tg->addTask(syncX);
+
+  tg->addDependency(sp1, syncX);
+  tg->addDependency(sp2, syncX);
+
+  syncInOut = syncX;
+}
+
 inline void VoronoiGenerator
 ::generateSweepTasks(
   TaskGraph * tg, 
@@ -337,12 +466,29 @@ inline void VoronoiGenerator
   syncOut = sync;
 }
 
-inline void VoronoiGenerator::generateSortCellCornersTasks(TaskGraph * tg, SyncTask * syncIn)
+inline void VoronoiGenerator
+::generateCapSweepTasks(
+  TaskGraph * tg,
+  SyncTask *& syncInOut)
 {
-  for (int i = 0; i<6; i++)
+  SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
+  sweepIX->td = { &m_sitesX, m_gen, 0 };
+  tg->addTask(sweepIX);
+  tg->addDependency(syncInOut, sweepIX);
+
+  SyncTask* sync = new SyncTask;
+  tg->addTask(sync);
+  tg->addDependency(sweepIX, sync);
+
+  syncInOut = sync;
+}
+
+inline void VoronoiGenerator::generateSortCellCornersTasks(TaskGraph * tg, SyncTask * syncIn, size_t threads)
+{
+  for (size_t i = 0; i<threads; i++)
   {
     SortCellCornersTask* scct = new SortCellCornersTask;
-    scct->td = { cell_vector, (unsigned int)(i / 6.f * m_size), (unsigned int)((i + 1) / 6.f * m_size - 1) };
+    scct->td = { cell_vector, (unsigned int)(i / (double)threads * m_size), (unsigned int)((i + 1) / (double)threads * m_size - 1) };
 
     tg->addTask(scct);
     tg->addDependency(syncIn, scct);
@@ -358,11 +504,23 @@ void VoronoiGenerator::buildTaskGraph(TaskGraph* tg, glm::dvec3* points)
   generateInitSitesTasks(tg, sync, syncXYZ);
   generateSortPointsTasks(tg, syncXYZ);
   generateSweepTasks(tg, syncXYZ, sync);
-  generateSortCellCornersTasks(tg, sync);
+  generateSortCellCornersTasks(tg, sync, 6);
 
   tg->finalizeGraph();
 }
 
+void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin, glm::dvec3* points)
+{
+  SyncTask* sync;
+
+  generateCapInitCellsTasks(tg, points, sync);
+  generateCapInitSitesTasks(tg, sync, origin);
+  generateCapSortPointsTasks(tg, sync);
+  generateCapSweepTasks(tg, sync);
+  generateSortCellCornersTasks(tg, sync, 2);
+
+  tg->finalizeGraph();
+}
 
 inline void VoronoiGenerator::writeCell(std::ofstream & os, int i)
 {
@@ -491,7 +649,7 @@ void InitSitesTask<A>::process()
 {
   for (unsigned int i = td.start; i <= td.end; i++)
   {
-    VoronoiSite site((td.cells)[i].position, td.cells + i, A);
+    VoronoiSite site{(td.cells)[i].position, td.cells + i, A};
     (*(td.sites))[i] = site;
   }
 }
@@ -499,6 +657,15 @@ void InitSitesTask<A>::process()
 template class InitSitesTask<X>;
 template class InitSitesTask<Y>;
 template class InitSitesTask<Z>;
+
+void InitSitesCapTask::process()
+{
+  for (unsigned int i = td.start; i <= td.end; i++)
+  {
+    VoronoiSite site{(td.cells)[i].position, td.cells + i, td.origin, td.originY, td.originZ};
+    (*(td.sites))[i] = site;
+  }
+}
 
 void SortPoints1Task::process()
 {
@@ -553,9 +720,9 @@ void SortPoints2Task::process()
 
   // merge into original array
   int a = size1 - 1; int b = size - 1;
-  for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
+  for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size; i--)
   {
-    if (voronoiSiteCompare(scratch1[a], scratch[b]))
+    if (a < 0 || voronoiSiteCompare(scratch1[a], scratch[b]))
       (*td.sites)[i] = scratch[b--];
     else
       (*td.sites)[i] = scratch1[a--];

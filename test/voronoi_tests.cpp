@@ -190,3 +190,37 @@ TEST(VoronoiTests, TestPerformance)
     }
     std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
 }
+
+TEST(VoronoiTests, TestCapPerformance)
+{
+    boost::timer::cpu_timer total;
+    int runs = 16;
+    for (int w = 0; w < runs; w++)
+    {
+        VoronoiGenerator vg;
+        size_t count = 100000;
+        glm::dvec3* points = vg.genRandomInput(count);
+        glm::dvec3* points_in_radius = new glm::dvec3[count];
+        std::vector<VoronoiCell> out;
+        glm::dvec3 origin = glm::normalize(glm::dvec3(1.0, 1.0, 1.0));
+
+        // copy points within radius of origin
+        size_t j = 0;
+        for (size_t i = 0; i < count; i++)
+        {
+            if (glm::dot(points[i], origin) >= 0.9)
+                points_in_radius[j++] = points[i];
+        }
+
+        std::cout << "points in radius: " << j << std::endl;
+
+        total.resume();
+        vg.generateCap(origin, points_in_radius, j, out);
+        total.stop();
+        vg.clear();
+
+        delete[] points;
+        delete[] points_in_radius;
+    }
+    std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+}
