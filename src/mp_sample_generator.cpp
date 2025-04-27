@@ -8,17 +8,19 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+namespace VorGen {
+
 SampleGenerator::SampleGenerator()
 {
     seed = (unsigned int) time(NULL);
-    //std::cout << "seed = " << seed << "\n";
+    //::std::cout << "seed = " << seed << "\n";
 
-    unif = std::uniform_real_distribution<double>(0.0,1.0);
+    unif = ::std::uniform_real_distribution<double>(0.0,1.0);
 }
 
 SampleGenerator::SampleGenerator(unsigned int seed) : seed(seed)
 {
-    unif = std::uniform_real_distribution<double>(0.0,1.0);
+    unif = ::std::uniform_real_distribution<double>(0.0,1.0);
 }
 
 // Generates n * n jittered samples in the range [0,1) x [0,1)
@@ -101,4 +103,6 @@ glm::dvec3* SampleGenerator::getRandomPointsSphere(int n)
     }
 
     return samples;
+}
+
 }

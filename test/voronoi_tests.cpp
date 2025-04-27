@@ -11,8 +11,11 @@
 
 #define _USE_MATH_DEFINES
 #include <math.h>
-
 #include "gtest/gtest.h"
+#include <boost/chrono.hpp>
+#include <boost/timer/timer.hpp>
+
+namespace VorGen {
 
 TEST(VoronoiTests, TestIntersect)
 {
@@ -115,7 +118,7 @@ TEST(VoronoiTests, TestVerifyResult)
 
 TEST(VoronoiTests, TestCircumcenter)
 {
-    std::vector<VoronoiSite> sites;
+    ::std::vector<VoronoiSite> sites;
     VoronoiSweeper<Increasing,X> vorI(&sites, 0, 0);
     glm::dvec3 p1 = glm::normalize(glm::dvec3( 0.0, 1.0, 0.5f));
     glm::dvec3 p2 = glm::normalize(glm::dvec3( 1.0, 0.0, 0.5f));
@@ -168,12 +171,9 @@ TEST(VoronoiTests, TestCompare)
     EXPECT_FALSE( vsecD(&v2, &ceY) );
 }
 
-#include <boost/chrono.hpp>
-#include <boost/timer/timer.hpp>
-
 TEST(VoronoiTests, TestPerformance)
 {
-    boost::timer::cpu_timer total;
+    ::boost::timer::cpu_timer total;
     int runs = 16;
     for (int w = 0; w < runs; w++)
     {
@@ -188,12 +188,12 @@ TEST(VoronoiTests, TestPerformance)
 
         delete[] points;
     }
-    std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+    ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
 }
 
 TEST(VoronoiTests, TestCapPerformance)
 {
-    boost::timer::cpu_timer total;
+    ::boost::timer::cpu_timer total;
     int runs = 16;
     for (int w = 0; w < runs; w++)
     {
@@ -201,7 +201,7 @@ TEST(VoronoiTests, TestCapPerformance)
         size_t count = 100000;
         glm::dvec3* points = vg.genRandomInput(count);
         glm::dvec3* points_in_radius = new glm::dvec3[count];
-        std::vector<VoronoiCell> out;
+        ::std::vector<VoronoiCell> out;
         glm::dvec3 origin = glm::normalize(glm::dvec3(1.0, 1.0, 1.0));
 
         // copy points within radius of origin
@@ -212,7 +212,7 @@ TEST(VoronoiTests, TestCapPerformance)
                 points_in_radius[j++] = points[i];
         }
 
-        std::cout << "points in radius: " << j << std::endl;
+        ::std::cout << "points in radius: " << j << ::std::endl;
 
         total.resume();
         vg.generateCap(origin, points_in_radius, j, out);
@@ -222,5 +222,7 @@ TEST(VoronoiTests, TestCapPerformance)
         delete[] points;
         delete[] points_in_radius;
     }
-    std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+    ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+}
+
 }

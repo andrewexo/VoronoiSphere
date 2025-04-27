@@ -11,12 +11,14 @@
 #include <boost/timer/timer.hpp>
 #include <mutex>
 
+namespace VorGen {
+
 // Define this macro to enable timing output for SweepTasks
 //#define ENABLE_SWEEP_TIMERS
 
 #ifdef ENABLE_SWEEP_TIMERS
 // Global mutex for synchronizing console output
-std::mutex cout_mutex;
+::std::mutex cout_mutex;
 #endif
 
 VoronoiGenerator::VoronoiGenerator()
@@ -60,7 +62,7 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
   if (writeToFile) writeDataToOBJ();
 }
 
-void VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, std::vector<VoronoiCell>& out)
+void VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, ::std::vector<VoronoiCell>& out)
 {
     m_size = count;
     m_gen = count;
@@ -327,13 +329,13 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
   SortPoints1Task* sp5 = new SortPoints1Task;
   SortPoints2Task* sp6 = new SortPoints2Task;
 
-  std::promise<VoronoiSite*>* p_temps1 = new std::promise<VoronoiSite*>[2];
-  std::promise<VoronoiSite*>* p_temps2 = new std::promise<VoronoiSite*>[2];
-  std::promise<VoronoiSite*>* p_temps3 = new std::promise<VoronoiSite*>[2];
+  ::std::promise<VoronoiSite*>* p_temps1 = new ::std::promise<VoronoiSite*>[2];
+  ::std::promise<VoronoiSite*>* p_temps2 = new ::std::promise<VoronoiSite*>[2];
+  ::std::promise<VoronoiSite*>* p_temps3 = new ::std::promise<VoronoiSite*>[2];
   
-  std::promise<bool>* p_done1 = new std::promise<bool>[2];
-  std::promise<bool>* p_done2 = new std::promise<bool>[2];
-  std::promise<bool>* p_done3 = new std::promise<bool>[2];
+  ::std::promise<bool>* p_done1 = new ::std::promise<bool>[2];
+  ::std::promise<bool>* p_done2 = new ::std::promise<bool>[2];
+  ::std::promise<bool>* p_done3 = new ::std::promise<bool>[2];
 
   sp1->td = { &m_sitesX, p_temps1, p_done1, 
                          (p_temps1+1)->get_future(), 
@@ -394,8 +396,8 @@ inline void VoronoiGenerator::generateCapSortPointsTasks(TaskGraph * tg, SyncTas
   SortPoints1Task* sp1 = new SortPoints1Task;
   SortPoints2Task* sp2 = new SortPoints2Task;
 
-  std::promise<VoronoiSite*>* p_temps = new std::promise<VoronoiSite*>[2];
-  std::promise<bool>* p_done = new std::promise<bool>[2];
+  ::std::promise<VoronoiSite*>* p_temps = new ::std::promise<VoronoiSite*>[2];
+  ::std::promise<bool>* p_done = new ::std::promise<bool>[2];
 
   sp1->td = { &m_sitesX, p_temps, p_done, 
                          (p_temps+1)->get_future(), 
@@ -522,7 +524,7 @@ void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin
   tg->finalizeGraph();
 }
 
-inline void VoronoiGenerator::writeCell(std::ofstream & os, int i)
+inline void VoronoiGenerator::writeCell(::std::ofstream & os, int i)
 {
   if (cell_vector[i].m_arcs != 0)
     return;
@@ -552,12 +554,12 @@ void VoronoiGenerator::writeDataToFile()
 {
   boost::timer::auto_cpu_timer t;
 
-  std::ofstream file;
-  file.open("output/voronoi_data", std::ofstream::binary);
+  ::std::ofstream file;
+  file.open("output/voronoi_data", ::std::ofstream::binary);
 
   if (!file.is_open())
   {
-    std::cout << "Unable to write data to file.\n";
+    ::std::cout << "Unable to write data to file.\n";
     return;
   }
 
@@ -568,19 +570,19 @@ void VoronoiGenerator::writeDataToFile()
 
   file.close();
 
-  std::cout << "Data written to: output/voronoi_data\n";
+  ::std::cout << "Data written to: output/voronoi_data\n";
 }
 
 void VoronoiGenerator::writeDataToOBJ()
 {
   boost::timer::auto_cpu_timer t;
 
-  std::ofstream file;
-  file.open("output/voronoi_data.obj", std::ofstream::binary);
+  ::std::ofstream file;
+  file.open("output/voronoi_data.obj", ::std::ofstream::binary);
 
   if (!file.is_open())
   {
-    std::cout << "Unable to write data to file.\n";
+    ::std::cout << "Unable to write data to file.\n";
     return;
   }
 
@@ -591,10 +593,10 @@ void VoronoiGenerator::writeDataToOBJ()
 
   file.close();
 
-  std::cout << "Data written to: output/voronoi_data\n";
+  ::std::cout << "Data written to: output/voronoi_data\n";
 }
 
-inline void VoronoiGenerator::writeCellOBJ(std::ofstream & os, int i)
+inline void VoronoiGenerator::writeCellOBJ(::std::ofstream & os, int i)
 {
   if (cell_vector[i].m_arcs != 0)
     return;
@@ -604,20 +606,20 @@ inline void VoronoiGenerator::writeCellOBJ(std::ofstream & os, int i)
   if (numCorners < 3)
     return;
 
-  std::string idx = "f ";
+  ::std::string idx = "f ";
   for (int j = 0; j < numCorners; j++)
   {
     os.write("v ", 2);
 
-    std::string x = std::to_string(cell_vector[i].corners[j].x); x += " ";
-    std::string y = std::to_string(cell_vector[i].corners[j].y); y += " ";
-    std::string z = std::to_string(cell_vector[i].corners[j].z); z += "\n";
+    ::std::string x = ::std::to_string(cell_vector[i].corners[j].x); x += " ";
+    ::std::string y = ::std::to_string(cell_vector[i].corners[j].y); y += " ";
+    ::std::string z = ::std::to_string(cell_vector[i].corners[j].z); z += "\n";
 
     os.write(x.c_str(), x.length());
     os.write(y.c_str(), y.length());
     os.write(z.c_str(), z.length());
 
-    idx += std::to_string(j-numCorners) + " ";
+    idx += ::std::to_string(j-numCorners) + " ";
   }
 
   // write face
@@ -672,7 +674,7 @@ void SortPoints1Task::process()
   // sort array half
   unsigned int size = (unsigned int)td.sites->size() / 2;
   VoronoiSiteCompare voronoiSiteCompare;
-  std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
+  ::std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
 
   // copy into scratch array
   VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
@@ -708,7 +710,7 @@ void SortPoints2Task::process()
   unsigned int size1 = (unsigned int)td.sites->size() / 2;
   unsigned int size = (unsigned int)td.sites->size() - size1;
   VoronoiSiteCompare voronoiSiteCompare;
-  std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
+  ::std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
 
   // copy into scratch array
   VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
@@ -747,14 +749,14 @@ inline void SweepTask<O, A>::process()
   voronoiSweeper.sweep();
   
 #ifdef ENABLE_SWEEP_TIMERS
-  std::string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
-  std::string axisStr;
+  ::std::string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
+  ::std::string axisStr;
   if (A == X) axisStr = "X";
   else if (A == Y) axisStr = "Y";
   else axisStr = "Z";
   
-  std::lock_guard<std::mutex> lock(cout_mutex);
-  std::cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << std::endl;
+  ::std::lock_guard<::std::mutex> lock(cout_mutex);
+  ::std::cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << ::std::endl;
 #endif
 }
 
@@ -776,4 +778,6 @@ void SortCellCornersTask::process()
     (td.cell_vector[i]).computeCentroid();
 #endif
   }
+}
+
 }

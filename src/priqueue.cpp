@@ -4,6 +4,8 @@
 #include <algorithm>
 #include "memblock.h"
 
+namespace VorGen {
+
 #define PNODE PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>
 #define PRIQUEUE PriQueue<T, Compare, SKIP_DEPTH, ROLL_LENGTH>
 #define PNODE_TEMPLATE template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
@@ -43,7 +45,7 @@ PRIQUEUE_TEMPLATE
 PRIQUEUE::PriQueue()
 {
     head = nullptr;
-    distribution = std::uniform_int_distribution<int>(0, DIST_MAX);
+    distribution = ::std::uniform_int_distribution<int>(0, DIST_MAX);
 }
 
 PRIQUEUE_TEMPLATE
@@ -186,7 +188,7 @@ inline int log2_5(int n)
 PRIQUEUE_TEMPLATE
 void PRIQUEUE::addSkips(PNODE* node, PNODE** previous)
 {
-    int skip_count = (int) (SKIP_DEPTH - log2_5(std::max((int)(distribution(generator)), 1)));
+    int skip_count = (int) (SKIP_DEPTH - log2_5(::std::max((int)(distribution(generator)), 1)));
 
     for (int i = 0; i < skip_count; i++)
     {
@@ -339,3 +341,5 @@ template class PriQueue<CircleEvent<Decreasing>, VoronoiEventCompare<Decreasing>
 
 template class PriQueueNode<CircleEvent<Increasing>, 8, 64>;
 template class PriQueueNode<CircleEvent<Decreasing>, 8, 64>;
+
+}

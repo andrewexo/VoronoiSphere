@@ -3,6 +3,7 @@
 #include "globals.h"
 #include <algorithm>
 
+namespace VorGen {
 
 void VoronoiCell::addCorner(const glm::dvec3 & c, uint8_t thread)
 {
@@ -56,7 +57,7 @@ void VoronoiCell::sortCorners()
         double angle;
     };
 
-    std::vector<VecAngle> pairs(corners.size());
+    ::std::vector<VecAngle> pairs(corners.size());
 
     glm::dvec3 pivnorm = glm::normalize(corners[0] - position);
 
@@ -69,7 +70,7 @@ void VoronoiCell::sortCorners()
         pairs[i].angle = atan2(y, x);
     }
 
-    std::sort(pairs.begin(), pairs.end(), 
+    ::std::sort(pairs.begin(), pairs.end(), 
         [](const VecAngle & a, const VecAngle & b) -> bool
         {
             return a.angle > b.angle;
@@ -115,4 +116,6 @@ void VoronoiCell::computeCentroid()
 
     double f = 1.0/(3.0 * area);
     position = glm::vec3(inverse * glm::dvec4(f*cx, f*cy, cz, 1.0));
+}
+
 }

@@ -3,8 +3,9 @@
 
 #include "beachline.h"
 #include "voronoi_event.h"
-
 #include "platform.h"
+
+namespace VorGen {
 
 template <Order O>
 struct MemBlock
@@ -51,5 +52,7 @@ inline SkipNode<O>* getPointerFromIndex(SkipNode<O>* skipNode, int i)
 
 #define NODE(pointer, member) getPointerFromIndex(pointer, pointer->member)
 #define NODE_2(pointer, member) getPointerFromIndex(pointer, getPointerFromIndex(pointer, pointer->member)->member)
+
+}
 
 #endif

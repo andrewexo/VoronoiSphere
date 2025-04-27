@@ -1,11 +1,11 @@
 #include "beachline.h"
-
 #include "memblock.h"
 #include "platform.h"
-
 #include <cstring>
 #include <algorithm>
 #include <iostream>
+
+namespace VorGen {
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -253,7 +253,7 @@ BeachLine<O>::BeachLine()
 {
     size = 0;
     linked_list = NULL;
-    distribution = std::uniform_int_distribution<int>(0,DIST_MAX);
+    distribution = ::std::uniform_int_distribution<int>(0,DIST_MAX);
 }
 
 template <Order O>
@@ -440,7 +440,7 @@ inline int log2(int n)
 template <Order O>
 void BeachLine<O>::addSkips(SkipNode<O>* node, SkipNode<O>** previous, bool repeat_first)
 {
-    int skip_count = SKIP_DEPTH_B - log2(std::max((int)(distribution(generator)), 1));
+    int skip_count = SKIP_DEPTH_B - log2(::std::max((int)(distribution(generator)), 1));
 
     for(int i = 0; i < skip_count; i++)
     {
@@ -462,3 +462,5 @@ template class SkipNode<Decreasing>;
 
 template class BeachLine<Increasing>;
 template class BeachLine<Decreasing>;
+
+}

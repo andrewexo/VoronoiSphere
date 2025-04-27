@@ -3,8 +3,11 @@
 
 #include <atomic>
 
-extern std::atomic<unsigned int> completedCells;
+namespace VorGen {
 
+extern ::std::atomic<unsigned int> completedCells;
 enum Order { Increasing, Decreasing };
+
+}
 
 #endif

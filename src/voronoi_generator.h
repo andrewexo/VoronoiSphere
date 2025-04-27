@@ -9,8 +9,9 @@
 #include <atomic>
 #include <thread>
 #include <future>
-
 #include "gtest/gtest_prod.h"
+
+namespace VorGen {
 
 //#define CENTROID
 
@@ -24,7 +25,7 @@ class VoronoiGenerator
 
         glm::dvec3* genRandomInput(int count);
         void generate(glm::dvec3* points, int count, int gen, bool writeToFile);
-        void generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, std::vector<VoronoiCell>& out);
+        void generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, ::std::vector<VoronoiCell>& out);
         void clear();
 
     private:
@@ -40,14 +41,14 @@ class VoronoiGenerator
         // to be generated
 		unsigned int m_gen;
 
-        std::vector<VoronoiSite> m_sitesX;
-        std::vector<VoronoiSite> m_sitesY;
-        std::vector<VoronoiSite> m_sitesZ;
+        ::std::vector<VoronoiSite> m_sitesX;
+        ::std::vector<VoronoiSite> m_sitesY;
+        ::std::vector<VoronoiSite> m_sitesZ;
 
         void writeDataToFile();
         void writeDataToOBJ();
-        inline void writeCell(std::ofstream & os, int i);
-        inline void writeCellOBJ(std::ofstream & os, int i);
+        inline void writeCell(::std::ofstream & os, int i);
+        inline void writeCellOBJ(::std::ofstream & os, int i);
 
         void buildTaskGraph(TaskGraph* tg, glm::dvec3* points);
         void buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin, glm::dvec3* points);
@@ -92,7 +93,7 @@ struct TaskDataCellsResize
     glm::dvec3* points;
     unsigned int start;
     unsigned int end;
-    std::vector<VoronoiSite>* sites;
+    ::std::vector<VoronoiSite>* sites;
     unsigned int size;
 };
 
@@ -101,7 +102,7 @@ struct TaskDataSites
     VoronoiCell* cells;
     unsigned int start;
     unsigned int end;
-    std::vector<VoronoiSite>* sites;
+    ::std::vector<VoronoiSite>* sites;
 };
 
 struct TaskDataSitesCap
@@ -112,21 +113,21 @@ struct TaskDataSitesCap
     glm::dvec3 originZ;
     unsigned int start;
     unsigned int end;
-    std::vector<VoronoiSite>* sites;
+    ::std::vector<VoronoiSite>* sites;
 };
 
 struct TaskDataDualSort
 {
-    std::vector<VoronoiSite>* sites;
-    std::promise<VoronoiSite*>* p_temps;
-    std::promise<bool>* p_done;
-    std::future<VoronoiSite*> f_temps;
-    std::future<bool> f_done;
+    ::std::vector<VoronoiSite>* sites;
+    ::std::promise<VoronoiSite*>* p_temps;
+    ::std::promise<bool>* p_done;
+    ::std::future<VoronoiSite*> f_temps;
+    ::std::future<bool> f_done;
 };
 
 struct TaskDataSweep
 {
-    std::vector<VoronoiSite>* sites;
+    ::std::vector<VoronoiSite>* sites;
     unsigned int gen;
     uint8_t taskId;
 };
@@ -203,5 +204,7 @@ class SortCellCornersTask : public Task
         void process();
         TaskDataSortCorners td;
 };
+
+}
 
 #endif

@@ -1,6 +1,7 @@
 #include "voronoi_event.h"
-
 #include <math.h>
+
+namespace VorGen {
 
 template <Order O>
 CircleEvent<O>::CircleEvent()
@@ -19,3 +20,5 @@ CircleEvent<O>::CircleEvent(double polar, double polar_small, const glm::dvec3 &
 
 template class CircleEvent<Increasing>;
 template class CircleEvent<Decreasing>;
+
+}

@@ -12,6 +12,8 @@
 #include "memblock.h"
 #include "globals.h"
 
+namespace VorGen {
+
 template <Order O>
 const double sweeplineStart;
 
@@ -36,7 +38,7 @@ class VoronoiSweeper
   public:
 
     VoronoiSweeper(
-      std::vector<VoronoiSite>* sites, 
+      ::std::vector<VoronoiSite>* sites, 
       unsigned int gen, 
       uint8_t threadId);
     ~VoronoiSweeper();
@@ -51,7 +53,7 @@ class VoronoiSweeper
     BeachLine<O> m_beachLine;
     PriQueue<CircleEvent<O>, VoronoiEventCompare<O>, 8, 64> m_circles;
 
-    std::vector<VoronoiSite>* m_sites;
+    ::std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;
 
     unsigned int m_gen;
@@ -91,5 +93,7 @@ class VoronoiSweeper
       const glm::dvec3 & j, 
       const glm::dvec3 & k);
 };
+
+}
 
 #endif

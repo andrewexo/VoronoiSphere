@@ -1,6 +1,7 @@
 #include "task_graph.h"
-
 #include <thread>
+
+namespace VorGen {
 
 TaskGraph::~TaskGraph()
 {
@@ -13,10 +14,10 @@ TaskGraph::~TaskGraph()
 void TaskGraph::processTasks(int numThreads)
 {
     // create threads
-    std::thread* m_threads = new std::thread[numThreads-1];
+    ::std::thread* m_threads = new ::std::thread[numThreads-1];
     for (int i = 0; i < numThreads - 1; i++)
     {
-        m_threads[i] = std::thread(processTasksThread, this);
+        m_threads[i] = ::std::thread(processTasksThread, this);
     }
 
     processTasksThread(this);
@@ -105,4 +106,6 @@ Task::Task()
 {
     m_preReqs.store(0);
     isEmpty = false;
+}
+
 }

@@ -3,6 +3,8 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+namespace VorGen {
+
 constexpr double PI2 = 2.0 * M_PI;
 
 VoronoiSite::VoronoiSite() {}
@@ -64,4 +66,6 @@ VoronoiSite::VoronoiSite(
     m_polSin = sin(m_polar);
     m_aziCosPS = cos(m_azimuth) * m_polSin;
     m_aziSinPS = sin(m_azimuth) * m_polSin;
+}
+
 }

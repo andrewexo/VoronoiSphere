@@ -27,7 +27,7 @@ int main(int argc, char* argv[])
         printf("Results will be written to file\n");
     }
 
-    VoronoiGenerator vg;
+    VorGen::VoronoiGenerator vg;
     glm::dvec3* points = vg.genRandomInput(count);
 
 	auto start = std::chrono::high_resolution_clock::now();

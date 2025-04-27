@@ -1,5 +1,7 @@
 #include "spin_lock.h"
 
+namespace VorGen {
+
 SpinLock::SpinLock()
 {
     m_status.store(0);
@@ -18,4 +20,6 @@ void SpinLock::lock()
 void SpinLock::unlock()
 {
     m_status.store(0);
+}
+
 }

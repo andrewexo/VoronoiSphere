@@ -5,6 +5,8 @@
 #include "voronoi_event.h"
 #include "voronoi_site.h"
 
+namespace VorGen {
+
 template <Order O> struct VoronoiEventCompare;
 
 template <> struct VoronoiEventCompare<Increasing>
@@ -73,5 +75,7 @@ template <> struct VoronoiSiteEventCompare<Decreasing>
             return (polarDiff < 0.0);
     }
 };
+
+}
 
 #endif

@@ -27,10 +27,13 @@ TEST_OBJS = tests.o
 vg: vg_main.o $(VORONOI_GENERATOR_OBJS)
 	$(LINKER) vg_main.o $(VORONOI_GENERATOR_OBJS) $(LINKS) -o vg
 
+libvoronoi.a: $(VORONOI_GENERATOR_OBJS)
+	ar rcs libvoronoi.a $(VORONOI_GENERATOR_OBJS)
+
 tests: $(TEST_OBJS)
 	$(LINKER) $(TEST_OBJS) $(VORONOI_GENERATOR_OBJS) $(TEST_LINKS) $(LINKS) -o tests
 
-all: vg tests
+all: vg tests libvoronoi.a
 
 vg_main.o: vg_main.cpp
 	$(COMPILER) vg_main.cpp $(FLAGS) -c
@@ -79,7 +82,7 @@ tests.o: test/tests.cpp test/voronoi_tests.cpp test/priqueue_tests.cpp src/priqu
 
 ifeq ($(UNAME), Linux)
 clean:
-	rm *.o vg tests 2>/dev/null
+	rm *.o vg tests libvoronoi.a 2>/dev/null
 endif
 
 ifeq ($(UNAME), Darwin)

@@ -5,6 +5,8 @@
 #include "voronoi_cell.h"
 #include "globals.h"
 
+namespace VorGen {
+
 enum Axis {X,Y,Z};
 
 class VoronoiSite
@@ -31,5 +33,7 @@ public:
 
   VoronoiCell* m_cell;
 };
+
+}
 
 #endif

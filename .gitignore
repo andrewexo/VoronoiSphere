@@ -10,6 +10,8 @@ v_sphere_timings.txt
 /*.o
 /vg
 /tests
+/libvoronoi.a
+/perf.data*
 
 /output/voronoi_data
 /output/voronoi_data.obj

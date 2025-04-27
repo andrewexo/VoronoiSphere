@@ -1,3 +1,7 @@
 #include "globals.h"
 
-std::atomic<unsigned int> completedCells {0};
+namespace VorGen {
+
+::std::atomic<unsigned int> completedCells {0};
+
+}

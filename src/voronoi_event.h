@@ -8,6 +8,8 @@
 #include "globals.h"
 #include "../glm/glm.hpp"
 
+namespace VorGen {
+
 template <Order O>
 class CircleEvent
 {
@@ -21,5 +23,7 @@ class CircleEvent
 
         void* pqn; // pointer to node in priority queue
 };
+
+}
 
 #endif

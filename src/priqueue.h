@@ -4,9 +4,9 @@
 #include "voronoi_event.h"
 #include "voronoi_event_compare.h"
 #include <random>
-
 #include "gtest/gtest_prod.h"
 
+namespace VorGen {
 
 template <typename T, size_t SKIP_DEPTH, size_t ROLL_LENGTH>
 class PriQueueNode
@@ -51,8 +51,8 @@ class PriQueue
         PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* head;
         Compare comp;
 
-        std::default_random_engine generator;
-        std::uniform_int_distribution<int> distribution;
+        ::std::default_random_engine generator;
+        ::std::uniform_int_distribution<int> distribution;
 
         void addSkips(PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>* node, 
                       PriQueueNode<T, SKIP_DEPTH, ROLL_LENGTH>** previous);
@@ -66,5 +66,7 @@ class PriQueue
         FRIEND_TEST(PriQueueTests, TestErase2);
         FRIEND_TEST(PriQueueTests, TestRollLengthPerformance);
 };
+
+}
 
 #endif

@@ -3,9 +3,10 @@
 #include "../glm/glm.hpp"
 #include <iostream>
 
+namespace VorGen {
+
 template<> double sweeplineStart<Increasing> = 0.0;
 template<> double sweeplineStart<Decreasing> = M_PI;
-
 
 template <>
 OrderedIterator<Increasing>
@@ -50,9 +51,8 @@ inline bool OrderedIterator<O>
 }
 
 template <Order O, Axis A>
-VoronoiSweeper<O, A>
-::VoronoiSweeper(
-	std::vector<VoronoiSite>* sites, 
+VoronoiSweeper<O, A>::VoronoiSweeper(
+	::std::vector<VoronoiSite>* sites, 
 	unsigned int gen, 
 	uint8_t threadId
 	) : m_sites(sites), 
@@ -63,7 +63,7 @@ VoronoiSweeper<O, A>
 	m_sweeplineLarge = sweeplineStart<O>;
 	m_sweeplineSmall = 0.0;
 
-	unsigned int count = std::min((int)sites->size(), (int)(m_gen * 2));
+	unsigned int count = ::std::min((int)sites->size(), (int)(m_gen * 2));
 	auto size = (2 * count - 2) * sizeof(MemBlock<O>);
 	m_nextBlock = m_memBlocks = (MemBlock<O>*)malloc( size );
 	block = 0;
@@ -240,6 +240,8 @@ void VoronoiSweeper<O,A>
 			}
 		}
 	}
+}
+
 }
 
 #define SWEEP_AXIS X

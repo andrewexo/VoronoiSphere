@@ -1,10 +1,11 @@
 #include "voronoi.h"
 #include "globals.h"
 #include "../glm/glm.hpp"
-
 #include <iostream>
 #include <math.h>
 #include <algorithm>
+
+namespace VorGen {
 
 template <>
 glm::dvec3 VoronoiSweeper<Increasing,SWEEP_AXIS>
@@ -60,3 +61,5 @@ inline bool VoronoiSweeper<Increasing,SWEEP_AXIS>
 // code to link against
 template class VoronoiSweeper<Increasing,SWEEP_AXIS>;
 template class VoronoiSweeper<Decreasing,SWEEP_AXIS>;
+
+}

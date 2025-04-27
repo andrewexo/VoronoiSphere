@@ -3,8 +3,9 @@
 
 #include "../glm/glm.hpp"
 #include "globals.h"
-
 #include <random>
+
+namespace VorGen {
 
 class SampleGenerator
 {
@@ -22,9 +23,11 @@ class SampleGenerator
     private:
 
         unsigned int seed;
-        std::uniform_real_distribution<double> unif;
-        std::default_random_engine re;
+        ::std::uniform_real_distribution<double> unif;
+        ::std::default_random_engine re;
 
 };
+
+}
 
 #endif

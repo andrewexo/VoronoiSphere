@@ -6,6 +6,8 @@
 #include "voronoi_site.h"
 #include <random>
 
+namespace VorGen {
+
 #define SKIP_DEPTH_B 8
 
 template <Order O>
@@ -83,8 +85,10 @@ class BeachLine
         void removeSkips(SkipNode<O>* node);
 
         // for randomly determining the number of skip levels to add
-        std::default_random_engine generator;
-        std::uniform_int_distribution<int> distribution;
+        ::std::default_random_engine generator;
+        ::std::uniform_int_distribution<int> distribution;
 };
+
+}
 
 #endif

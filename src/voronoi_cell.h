@@ -8,6 +8,8 @@
 #include <atomic>
 #include <cmath>
 
+namespace VorGen {
+
 class VoronoiCell
 {
     public:
@@ -15,9 +17,9 @@ class VoronoiCell
         VoronoiCell(const glm::dvec3 & p);
 
         glm::dvec3 position;
-        std::vector<glm::dvec3> corners;
+        ::std::vector<glm::dvec3> corners;
         uint8_t m_arcs;	// probably enough bits!
-        std::atomic<uint8_t> m_owner;
+        ::std::atomic<uint8_t> m_owner;
 
         void addCorner(const glm::dvec3 & c, uint8_t thread);
         void increment(uint8_t thread);
@@ -26,5 +28,7 @@ class VoronoiCell
         void sortCorners();
         void computeCentroid();
 };
+
+}
 
 #endif

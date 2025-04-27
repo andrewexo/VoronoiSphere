@@ -6,6 +6,8 @@
 #include <vector>
 #include <iostream>
 
+namespace VorGen {
+
 class Task
 {
     public:
@@ -15,8 +17,8 @@ class Task
 
         virtual void process() = 0;
 
-        std::vector<Task*> m_dependents;
-        std::atomic<uint8_t> m_preReqs;
+        ::std::vector<Task*> m_dependents;
+        ::std::atomic<uint8_t> m_preReqs;
         bool isEmpty;
 };
 
@@ -47,11 +49,13 @@ class TaskGraph
 
     private:
 
-        std::vector<Task*> m_leaves;
-        std::vector<Task*> m_tasks;
+        ::std::vector<Task*> m_leaves;
+        ::std::vector<Task*> m_tasks;
 
         SyncTask m_final;
         SpinLock m_lock;
 };
+
+}
 
 #endif

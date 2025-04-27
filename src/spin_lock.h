@@ -3,6 +3,8 @@
 
 #include <atomic>
 
+namespace VorGen {
+
 class SpinLock
 {
     public:
@@ -12,7 +14,9 @@ class SpinLock
         void lock();
         void unlock();
 
-        std::atomic<uint8_t> m_status;
+        ::std::atomic<uint8_t> m_status;
 };
+
+}
 
 #endif
