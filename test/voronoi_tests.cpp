@@ -201,7 +201,6 @@ TEST(VoronoiTests, TestCapPerformance)
         size_t count = 100000;
         glm::dvec3* points = vg.genRandomInput(count);
         glm::dvec3* points_in_radius = new glm::dvec3[count];
-        ::std::vector<VoronoiCell> out;
         glm::dvec3 origin = glm::normalize(glm::dvec3(1.0, 1.0, 1.0));
 
         // copy points within radius of origin
@@ -215,7 +214,7 @@ TEST(VoronoiTests, TestCapPerformance)
         ::std::cout << "points in radius: " << j << ::std::endl;
 
         total.resume();
-        vg.generateCap(origin, points_in_radius, j, out);
+        vg.generateCap(origin, points_in_radius, j);
         total.stop();
         vg.clear();
 

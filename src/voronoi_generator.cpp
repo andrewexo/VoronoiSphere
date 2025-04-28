@@ -191,7 +191,7 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
   if (writeToFile) writeDataToOBJ();
 }
 
-void VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count, ::std::vector<VoronoiCell>& out)
+VoronoiCell* VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count)
 {
     m_size = count;
     m_gen = count;
@@ -201,7 +201,7 @@ void VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points,
     taskGraph.processTasks(2);
     completedCells = 0; // reset after generation for next generation
 
-    //out.assign(cell_vector, cell_vector + count);
+    return cell_vector;
 }
 
 inline void VoronoiGenerator
