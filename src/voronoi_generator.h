@@ -10,7 +10,7 @@
 
 namespace VorGen {
 
-//#define CENTROID
+#define CENTROID
 
 class VoronoiGenerator
 {
