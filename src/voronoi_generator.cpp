@@ -7,8 +7,6 @@
 #include <math.h>
 #include <algorithm>
 #include <cstring>
-#include <boost/chrono.hpp>
-#include <boost/timer/timer.hpp>
 #include <mutex>
 #include <atomic>
 #include <thread>
@@ -20,6 +18,8 @@ namespace VorGen {
 //#define ENABLE_SWEEP_TIMERS
 
 #ifdef ENABLE_SWEEP_TIMERS
+#include <boost/chrono.hpp>
+#include <boost/timer/timer.hpp>
 // Global mutex for synchronizing console output
 ::std::mutex cout_mutex;
 #endif
@@ -681,7 +681,9 @@ inline void VoronoiGenerator::writeCell(::std::ofstream & os, int i)
 
 void VoronoiGenerator::writeDataToFile()
 {
+  #ifdef ENABLE_TIMERS
   boost::timer::auto_cpu_timer t;
+  #endif
 
   ::std::ofstream file;
   file.open("output/voronoi_data", ::std::ofstream::binary);
@@ -704,7 +706,9 @@ void VoronoiGenerator::writeDataToFile()
 
 void VoronoiGenerator::writeDataToOBJ()
 {
+  #ifdef ENABLE_TIMERS
   boost::timer::auto_cpu_timer t;
+  #endif
 
   ::std::ofstream file;
   file.open("output/voronoi_data.obj", ::std::ofstream::binary);
