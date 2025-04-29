@@ -847,7 +847,7 @@ void SortPoints2Task::process()
 
   // copy into scratch array
   VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-  memcpy(scratch, td.sites->data() + size, size * sizeof(VoronoiSite));
+  memcpy(scratch, td.sites->data() + size1, size * sizeof(VoronoiSite));
 
   // send data to other thread
   td.p_temps->set_value(scratch);
