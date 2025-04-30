@@ -361,48 +361,13 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
     SortPoints1Task* sp5 = new SortPoints1Task;
     SortPoints2Task* sp6 = new SortPoints2Task;
 
-    ::std::promise<VoronoiSite*>* p_temps1 = new ::std::promise<VoronoiSite*>[2];
-    ::std::promise<VoronoiSite*>* p_temps2 = new ::std::promise<VoronoiSite*>[2];
-    ::std::promise<VoronoiSite*>* p_temps3 = new ::std::promise<VoronoiSite*>[2];
+    auto p_temps1 = new ::std::promise<VoronoiSite*>[2];
+    auto p_temps2 = new ::std::promise<VoronoiSite*>[2];
+    auto p_temps3 = new ::std::promise<VoronoiSite*>[2];
     
-    ::std::promise<bool>* p_done1 = new ::std::promise<bool>[2];
-    ::std::promise<bool>* p_done2 = new ::std::promise<bool>[2];
-    ::std::promise<bool>* p_done3 = new ::std::promise<bool>[2];
-
-    sp1->td = { &m_sitesX, p_temps1, p_done1, 
-                (p_temps1+1)->get_future(), 
-                (p_done1+1)->get_future() };
-    sp2->td = { &m_sitesX, p_temps1 + 1, p_done1 + 1,             
-                p_temps1->get_future(), 
-                p_done1->get_future() };
-
-    sp3->td = { &m_sitesY, p_temps2, p_done2, 
-                (p_temps2+1)->get_future(), 
-                (p_done2+1)->get_future() };
-    sp4->td = { &m_sitesY, p_temps2 + 1, p_done2 + 1,                          
-                p_temps2->get_future(), 
-                p_done2->get_future() };
-
-    sp5->td = { &m_sitesZ, p_temps3, p_done3, 
-                (p_temps3+1)->get_future(), 
-                (p_done3+1)->get_future() };
-    sp6->td = { &m_sitesZ, p_temps3 + 1, p_done3 + 1,                          
-                p_temps3->get_future(), 
-                p_done3->get_future() };
-
-    tg->addTask(sp1);
-    tg->addTask(sp2);
-    tg->addTask(sp3);
-    tg->addTask(sp4);
-    tg->addTask(sp5);
-    tg->addTask(sp6);
-
-    tg->addDependency(syncInOut.syncX, sp1);
-    tg->addDependency(syncInOut.syncX, sp2);
-    tg->addDependency(syncInOut.syncY, sp3);
-    tg->addDependency(syncInOut.syncY, sp4);
-    tg->addDependency(syncInOut.syncZ, sp5);
-    tg->addDependency(syncInOut.syncZ, sp6);
+    auto p_done1 = new ::std::promise<bool>[2];
+    auto p_done2 = new ::std::promise<bool>[2];
+    auto p_done3 = new ::std::promise<bool>[2];
 
     SyncTask* syncX = new SyncTask;
     SyncTask* syncY = new SyncTask;
@@ -411,12 +376,23 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
     tg->addTask(syncY);
     tg->addTask(syncZ);
 
-    tg->addDependency(sp1, syncX);
-    tg->addDependency(sp2, syncX);
-    tg->addDependency(sp3, syncY);
-    tg->addDependency(sp4, syncY);
-    tg->addDependency(sp5, syncZ);
-    tg->addDependency(sp6, syncZ);
+    auto addTask = [&](auto task, std::vector<VoronoiSite>& sites, 
+                       auto p_temps, auto p_done, 
+                       auto p_temps2, auto p_done2, 
+                       SyncTask* syncIn, SyncTask* syncOut)
+    {
+        task->td = { &sites, p_temps, p_done, p_temps2->get_future(), p_done2->get_future() };
+        tg->addTask(task);
+        tg->addDependency(syncIn, task);
+        tg->addDependency(task, syncOut);
+    };
+
+    addTask(sp1, m_sitesX, p_temps1, p_done1, p_temps1+1, p_done1+1, syncInOut.syncX, syncX);
+    addTask(sp2, m_sitesX, p_temps1+1, p_done1+1, p_temps1, p_done1, syncInOut.syncX, syncX);
+    addTask(sp3, m_sitesY, p_temps2, p_done2, p_temps2+1, p_done2+1, syncInOut.syncY, syncY);
+    addTask(sp4, m_sitesY, p_temps2+1, p_done2+1, p_temps2, p_done2, syncInOut.syncY, syncY);
+    addTask(sp5, m_sitesZ, p_temps3, p_done3, p_temps3+1, p_done3+1, syncInOut.syncZ, syncZ);
+    addTask(sp6, m_sitesZ, p_temps3+1, p_done3+1, p_temps3, p_done3, syncInOut.syncZ, syncZ);
 
     syncInOut.syncX = syncX;
     syncInOut.syncY = syncY;
@@ -432,11 +408,11 @@ inline void VoronoiGenerator::generateCapSortPointsTasks(TaskGraph * tg, SyncTas
     ::std::promise<bool>* p_done = new ::std::promise<bool>[2];
 
     sp1->td = { &m_sitesX, p_temps, p_done, 
-                                                 (p_temps+1)->get_future(), 
-                                                 (p_done+1)->get_future() };
+                (p_temps+1)->get_future(), 
+                (p_done+1)->get_future() };
     sp2->td = { &m_sitesX, p_temps + 1, p_done + 1,             
-                                                 p_temps->get_future(), 
-                                                 p_done->get_future() };
+                p_temps->get_future(), 
+                p_done->get_future() };
 
     tg->addTask(sp1);
     tg->addTask(sp2);
@@ -466,15 +442,15 @@ inline void VoronoiGenerator
     SweepTask<Increasing, Z>* sweepIZ = new SweepTask<Increasing, Z>;
     SweepTask<Decreasing, Z>* sweepDZ = new SweepTask<Decreasing, Z>;
 
-    SyncTask* sync = new SyncTask;
-    tg->addTask(sync);
+    syncOut = new SyncTask;
+    tg->addTask(syncOut);
 
     auto addTask = [&](auto task, SyncTask* syncIn, std::vector<VoronoiSite>& sites, uint8_t threadId)
     {
         task->td = { &sites, m_gen, threadId };
         tg->addTask(task);
         tg->addDependency(syncIn, task);
-        tg->addDependency(task, sync);
+        tg->addDependency(task, syncOut);
     };
 
     addTask(sweepIX, syncIn.syncX, m_sitesX, 1);
@@ -483,8 +459,6 @@ inline void VoronoiGenerator
     addTask(sweepDY, syncIn.syncY, m_sitesY, 1 << 3);
     addTask(sweepIZ, syncIn.syncZ, m_sitesZ, 1 << 4);
     addTask(sweepDZ, syncIn.syncZ, m_sitesZ, 1 << 5);
-
-    syncOut = sync;
 }
 
 inline void VoronoiGenerator
