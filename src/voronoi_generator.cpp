@@ -117,81 +117,22 @@ inline void VoronoiGenerator
     glm::dvec3 * points, 
     SyncTask *& syncOut)
 {
-    InitCellsTask* ict1 = new InitCellsTask;
-    InitCellsTask* ict2 = new InitCellsTask;
-    InitCellsTask* ict3 = new InitCellsTask;
+    syncOut = new SyncTask;
+    tg->addTask(syncOut);
 
-    ict1->td = { 
-        cell_vector, 
-        points, 
-        0,								  
-        (uint)(1.f / 6.f * m_size) - 1
+    auto addInitTask = [&](auto task, auto && td)
+    {
+        task->td = td;
+        tg->addTask(task);
+        tg->addDependency(task, syncOut);
     };
 
-    ict2->td = { 
-        cell_vector, 
-        points, 
-        (uint)(1.f / 6.f * m_size), 
-        (uint)(2.f / 6.f * m_size) - 1
-    };
-
-    ict3->td = { 
-        cell_vector, 
-        points, 
-        (uint)(2.f / 6.f * m_size), 
-        (uint)(3.f / 6.f * m_size) - 1
-    };
-
-    tg->addTask(ict1);
-    tg->addTask(ict2);
-    tg->addTask(ict3);
-
-    InitCellsAndResizeSitesTask* icrt1 = new InitCellsAndResizeSitesTask;
-    InitCellsAndResizeSitesTask* icrt2 = new InitCellsAndResizeSitesTask;
-    InitCellsAndResizeSitesTask* icrt3 = new InitCellsAndResizeSitesTask;
-
-    icrt1->td = { 
-        cell_vector, 
-        points, 
-        (uint)(3.f / 6.f * m_size), 
-        (uint)(4.f / 6.f * m_size) - 1, 
-        &m_sitesX, 
-        m_size
-    };
-
-    icrt2->td = { 
-        cell_vector, 
-        points, 
-        (uint)(4.f / 6.f * m_size), 
-        (uint)(5.f / 6.f * m_size) - 1, 
-        &m_sitesY, 
-        m_size
-    };
-
-    icrt3->td = { 
-        cell_vector, 
-        points, 
-        (uint)(5.f / 6.f * m_size), 
-        m_size - 1,							   
-        &m_sitesZ, 
-        m_size
-    };
-
-    tg->addTask(icrt1);
-    tg->addTask(icrt2);
-    tg->addTask(icrt3);
-
-    SyncTask* sync = new SyncTask;
-    tg->addTask(sync);
-
-    tg->addDependency(ict1, sync);
-    tg->addDependency(ict2, sync);
-    tg->addDependency(ict3, sync);
-    tg->addDependency(icrt1, sync);
-    tg->addDependency(icrt2, sync);
-    tg->addDependency(icrt3, sync);
-
-    syncOut = sync;
+    addInitTask(new InitCellsTask, TaskDataCells{cell_vector,points,0,(uint)(1.f / 6.f * m_size) - 1});
+    addInitTask(new InitCellsTask, TaskDataCells{cell_vector,points,(uint)(1.f / 6.f * m_size), (uint)(2.f / 6.f * m_size) - 1});
+    addInitTask(new InitCellsTask, TaskDataCells{cell_vector,points,(uint)(2.f / 6.f * m_size), (uint)(3.f / 6.f * m_size) - 1});
+    addInitTask(new InitCellsAndResizeSitesTask, TaskDataCellsResize{cell_vector,points,(uint)(3.f / 6.f * m_size), (uint)(4.f / 6.f * m_size) - 1, &m_sitesX, m_size});
+    addInitTask(new InitCellsAndResizeSitesTask, TaskDataCellsResize{cell_vector,points,(uint)(4.f / 6.f * m_size), (uint)(5.f / 6.f * m_size) - 1, &m_sitesY, m_size});
+    addInitTask(new InitCellsAndResizeSitesTask, TaskDataCellsResize{cell_vector,points,(uint)(5.f / 6.f * m_size), m_size - 1, &m_sitesZ, m_size});
 }
 
 inline void VoronoiGenerator
