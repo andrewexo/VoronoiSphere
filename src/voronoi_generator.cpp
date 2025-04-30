@@ -29,7 +29,7 @@ VoronoiGenerator::VoronoiGenerator()
     cell_vector = NULL;
 }
 
-VoronoiGenerator::VoronoiGenerator(unsigned int seed) : sample_generator(seed)
+VoronoiGenerator::VoronoiGenerator(uint seed) : sample_generator(seed)
 {
     cell_vector = NULL;
 }
@@ -125,21 +125,21 @@ inline void VoronoiGenerator
         cell_vector, 
         points, 
         0,								  
-        (unsigned int)(1.f / 6.f * m_size) - 1
+        (uint)(1.f / 6.f * m_size) - 1
     };
 
     ict2->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(1.f / 6.f * m_size), 
-        (unsigned int)(2.f / 6.f * m_size) - 1
+        (uint)(1.f / 6.f * m_size), 
+        (uint)(2.f / 6.f * m_size) - 1
     };
 
     ict3->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(2.f / 6.f * m_size), 
-        (unsigned int)(3.f / 6.f * m_size) - 1
+        (uint)(2.f / 6.f * m_size), 
+        (uint)(3.f / 6.f * m_size) - 1
     };
 
     tg->addTask(ict1);
@@ -153,8 +153,8 @@ inline void VoronoiGenerator
     icrt1->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(3.f / 6.f * m_size), 
-        (unsigned int)(4.f / 6.f * m_size) - 1, 
+        (uint)(3.f / 6.f * m_size), 
+        (uint)(4.f / 6.f * m_size) - 1, 
         &m_sitesX, 
         m_size
     };
@@ -162,8 +162,8 @@ inline void VoronoiGenerator
     icrt2->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(4.f / 6.f * m_size), 
-        (unsigned int)(5.f / 6.f * m_size) - 1, 
+        (uint)(4.f / 6.f * m_size), 
+        (uint)(5.f / 6.f * m_size) - 1, 
         &m_sitesY, 
         m_size
     };
@@ -171,7 +171,7 @@ inline void VoronoiGenerator
     icrt3->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(5.f / 6.f * m_size), 
+        (uint)(5.f / 6.f * m_size), 
         m_size - 1,							   
         &m_sitesZ, 
         m_size
@@ -205,7 +205,7 @@ inline void VoronoiGenerator
         cell_vector, 
         points, 
         0,								  
-        (unsigned int)(1.f / 2.f * m_size) - 1
+        (uint)(1.f / 2.f * m_size) - 1
     };
     
 
@@ -213,7 +213,7 @@ inline void VoronoiGenerator
     icrt->td = { 
         cell_vector, 
         points, 
-        (unsigned int)(1.f / 2.f * m_size), 
+        (uint)(1.f / 2.f * m_size), 
         m_size - 1, 
         &m_sitesX, 
         m_size
@@ -240,13 +240,6 @@ inline void VoronoiGenerator
     SyncTask * syncIn, 
     SyncXYZ & syncOut)
 {
-    InitSitesTask<X>* ist1 = new InitSitesTask<X>;
-    InitSitesTask<X>* ist2 = new InitSitesTask<X>;
-    InitSitesTask<Y>* ist3 = new InitSitesTask<Y>;
-    InitSitesTask<Y>* ist4 = new InitSitesTask<Y>;
-    InitSitesTask<Z>* ist5 = new InitSitesTask<Z>;
-    InitSitesTask<Z>* ist6 = new InitSitesTask<Z>;
-
     SyncTask* syncX = new SyncTask;
     SyncTask* syncY = new SyncTask;
     SyncTask* syncZ = new SyncTask;
@@ -254,25 +247,20 @@ inline void VoronoiGenerator
     tg->addTask(syncY);
     tg->addTask(syncZ);
 
-    auto addTask = [&](auto task, unsigned int start, unsigned int end, std::vector<VoronoiSite>& sites, SyncTask* sync)
+    auto addTask = [&](auto task, uint start, uint end, std::vector<VoronoiSite>& sites, SyncTask* sync)
     {
-        task->td = { 
-            cell_vector, 
-            start, 
-            end, 
-            &sites 
-        };
+        task->td = { cell_vector, start, end, &sites };
         tg->addTask(task);
         tg->addDependency(syncIn, task);
         tg->addDependency(task, sync);
     };
 
-    addTask(ist1, 0, m_size / 2 - 1, m_sitesX, syncX);
-    addTask(ist2, m_size / 2, m_size - 1, m_sitesX, syncX);
-    addTask(ist3, 0, m_size / 2 - 1, m_sitesY, syncY);
-    addTask(ist4, m_size / 2, m_size - 1, m_sitesY, syncY);
-    addTask(ist5, 0, m_size / 2 - 1, m_sitesZ, syncZ);
-    addTask(ist6, m_size / 2, m_size - 1, m_sitesZ, syncZ);
+    addTask(new InitSitesTask<X>, 0, m_size / 2 - 1, m_sitesX, syncX);
+    addTask(new InitSitesTask<X>, m_size / 2, m_size - 1, m_sitesX, syncX);
+    addTask(new InitSitesTask<Y>, 0, m_size / 2 - 1, m_sitesY, syncY);
+    addTask(new InitSitesTask<Y>, m_size / 2, m_size - 1, m_sitesY, syncY);
+    addTask(new InitSitesTask<Z>, 0, m_size / 2 - 1, m_sitesZ, syncZ);
+    addTask(new InitSitesTask<Z>, m_size / 2, m_size - 1, m_sitesZ, syncZ);
 
     syncOut.syncX = syncX;
     syncOut.syncY = syncY;
@@ -292,13 +280,13 @@ inline void VoronoiGenerator
     rpt1->td = { 
         points, 
         0, 
-        (unsigned int)m_size / 2 - 1, 
+        (uint)m_size / 2 - 1, 
         rotation
     };
 
     rpt2->td = { 
         points, 
-        (unsigned int)m_size / 2, 
+        (uint)m_size / 2, 
         m_size - 1, 
         rotation
     };
@@ -326,14 +314,14 @@ inline void VoronoiGenerator
     ist1->td = { 
         cell_vector, 
         0, 
-        (unsigned int)m_size / 2 - 1, 
+        (uint)m_size / 2 - 1, 
         &m_sitesX
     };
 
     ist2->td = { 
         cell_vector,
-        (unsigned int)m_size / 2,
-        (unsigned int)m_size - 1,	  
+        (uint)m_size / 2,
+        (uint)m_size - 1,	  
         &m_sitesX
     };
 
@@ -354,13 +342,6 @@ inline void VoronoiGenerator
 
 inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & syncInOut)
 {
-    SortPoints1Task* sp1 = new SortPoints1Task;
-    SortPoints2Task* sp2 = new SortPoints2Task;
-    SortPoints1Task* sp3 = new SortPoints1Task;
-    SortPoints2Task* sp4 = new SortPoints2Task;
-    SortPoints1Task* sp5 = new SortPoints1Task;
-    SortPoints2Task* sp6 = new SortPoints2Task;
-
     auto p_temps1 = new ::std::promise<VoronoiSite*>[2];
     auto p_temps2 = new ::std::promise<VoronoiSite*>[2];
     auto p_temps3 = new ::std::promise<VoronoiSite*>[2];
@@ -387,12 +368,12 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
         tg->addDependency(task, syncOut);
     };
 
-    addTask(sp1, m_sitesX, p_temps1, p_done1, p_temps1+1, p_done1+1, syncInOut.syncX, syncX);
-    addTask(sp2, m_sitesX, p_temps1+1, p_done1+1, p_temps1, p_done1, syncInOut.syncX, syncX);
-    addTask(sp3, m_sitesY, p_temps2, p_done2, p_temps2+1, p_done2+1, syncInOut.syncY, syncY);
-    addTask(sp4, m_sitesY, p_temps2+1, p_done2+1, p_temps2, p_done2, syncInOut.syncY, syncY);
-    addTask(sp5, m_sitesZ, p_temps3, p_done3, p_temps3+1, p_done3+1, syncInOut.syncZ, syncZ);
-    addTask(sp6, m_sitesZ, p_temps3+1, p_done3+1, p_temps3, p_done3, syncInOut.syncZ, syncZ);
+    addTask(new SortPoints1Task, m_sitesX, p_temps1, p_done1, p_temps1+1, p_done1+1, syncInOut.syncX, syncX);
+    addTask(new SortPoints2Task, m_sitesX, p_temps1+1, p_done1+1, p_temps1, p_done1, syncInOut.syncX, syncX);
+    addTask(new SortPoints1Task, m_sitesY, p_temps2, p_done2, p_temps2+1, p_done2+1, syncInOut.syncY, syncY);
+    addTask(new SortPoints2Task, m_sitesY, p_temps2+1, p_done2+1, p_temps2, p_done2, syncInOut.syncY, syncY);
+    addTask(new SortPoints1Task, m_sitesZ, p_temps3, p_done3, p_temps3+1, p_done3+1, syncInOut.syncZ, syncZ);
+    addTask(new SortPoints2Task, m_sitesZ, p_temps3+1, p_done3+1, p_temps3, p_done3, syncInOut.syncZ, syncZ);
 
     syncInOut.syncX = syncX;
     syncInOut.syncY = syncY;
@@ -435,13 +416,6 @@ inline void VoronoiGenerator
     SyncXYZ & syncIn, 
     SyncTask *& syncOut)
 {
-    SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
-    SweepTask<Decreasing, X>* sweepDX = new SweepTask<Decreasing, X>;
-    SweepTask<Increasing, Y>* sweepIY = new SweepTask<Increasing, Y>;
-    SweepTask<Decreasing, Y>* sweepDY = new SweepTask<Decreasing, Y>;
-    SweepTask<Increasing, Z>* sweepIZ = new SweepTask<Increasing, Z>;
-    SweepTask<Decreasing, Z>* sweepDZ = new SweepTask<Decreasing, Z>;
-
     syncOut = new SyncTask;
     tg->addTask(syncOut);
 
@@ -453,12 +427,12 @@ inline void VoronoiGenerator
         tg->addDependency(task, syncOut);
     };
 
-    addTask(sweepIX, syncIn.syncX, m_sitesX, 1);
-    addTask(sweepDX, syncIn.syncX, m_sitesX, 1 << 1);
-    addTask(sweepIY, syncIn.syncY, m_sitesY, 1 << 2);
-    addTask(sweepDY, syncIn.syncY, m_sitesY, 1 << 3);
-    addTask(sweepIZ, syncIn.syncZ, m_sitesZ, 1 << 4);
-    addTask(sweepDZ, syncIn.syncZ, m_sitesZ, 1 << 5);
+    addTask(new SweepTask<Increasing, X>, syncIn.syncX, m_sitesX, 1);
+    addTask(new SweepTask<Decreasing, X>, syncIn.syncX, m_sitesX, 1 << 1);
+    addTask(new SweepTask<Increasing, Y>, syncIn.syncY, m_sitesY, 1 << 2);
+    addTask(new SweepTask<Decreasing, Y>, syncIn.syncY, m_sitesY, 1 << 3);
+    addTask(new SweepTask<Increasing, Z>, syncIn.syncZ, m_sitesZ, 1 << 4);
+    addTask(new SweepTask<Decreasing, Z>, syncIn.syncZ, m_sitesZ, 1 << 5);
 }
 
 inline void VoronoiGenerator
@@ -484,7 +458,7 @@ inline void VoronoiGenerator::generateSortCellCornersTasks(TaskGraph * tg, SyncT
     for (size_t i = 0; i<threads; i++)
     {
         SortCellCornersTask* scct = new SortCellCornersTask;
-        scct->td = { cell_vector, (unsigned int)(i / (double)threads * m_size), (unsigned int)((i + 1) / (double)threads * m_size - 1) };
+        scct->td = { cell_vector, (uint)(i / (double)threads * m_size), (uint)((i + 1) / (double)threads * m_size - 1) };
 
         tg->addTask(scct);
         tg->addDependency(syncIn, scct);
@@ -496,7 +470,7 @@ inline void VoronoiGenerator::generateCapSortCellCornersTasks(TaskGraph * tg, Sy
     for (size_t i = 0; i<threads; i++)
     {
         SortCornersRotateTask* scct = new SortCornersRotateTask;
-        scct->td = { cell_vector, (unsigned int)(i / (double)threads * m_size), (unsigned int)((i + 1) / (double)threads * m_size - 1), rotation };
+        scct->td = { cell_vector, (uint)(i / (double)threads * m_size), (uint)((i + 1) / (double)threads * m_size - 1), rotation };
 
         tg->addTask(scct);
         tg->addDependency(syncIn, scct);
@@ -543,7 +517,7 @@ void VoronoiGenerator::writeDataToFile()
         return;
     }
 
-    for (unsigned int i = 0; i < m_size; i++)
+    for (uint i = 0; i < m_size; i++)
         writeCell(file, i);
 
     file.close();
@@ -566,7 +540,7 @@ void VoronoiGenerator::writeDataToOBJ()
         return;
     }
 
-    for (unsigned int i = 0; i < m_size; i++)
+    for (uint i = 0; i < m_size; i++)
         writeCellOBJ(file, i);
 
     file.close();

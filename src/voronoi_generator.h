@@ -17,7 +17,7 @@ class VoronoiGenerator
     public:
 
         VoronoiGenerator();
-        VoronoiGenerator(unsigned int seed);
+        VoronoiGenerator(uint seed);
         ~VoronoiGenerator();
 
         glm::dvec3* genRandomInput(int count);
@@ -31,12 +31,12 @@ class VoronoiGenerator
         VoronoiCell* cell_vector;
 
         // max number of cells to generate
-        unsigned int m_size;
+        uint m_size;
 
         // number of cells to generate
         // use if you want part of the sphere 
         // to be generated
-		unsigned int m_gen;
+		uint m_gen;
 
         ::std::vector<VoronoiSite> m_sitesX;
         ::std::vector<VoronoiSite> m_sitesY;
