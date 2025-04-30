@@ -70,7 +70,7 @@ TEST(VoronoiTests, TestVerifyResult)
     for (int w = 0; w < 12; w++)
     {
         VoronoiGenerator vg;
-        int count = (int)pow(10, ((w / 3) + 1));
+        size_t count = (int)pow(10, ((w / 3) + 1));
         glm::dvec3* points = vg.genRandomInput(count);
         vg.generate(points, count, count, false);
         delete[] points;
@@ -113,6 +113,7 @@ TEST(VoronoiTests, TestVerifyResult)
         // assert correctness == 100%
         EXPECT_EQ((unsigned int)0, incorrect);
         EXPECT_EQ((unsigned int)0, corner_count_incorrect);
+        EXPECT_GE(completedCells+2, count); // there may be 2 arcs on the beachline, but the vertex they converge to has been added
     }
 }
 
@@ -222,6 +223,56 @@ TEST(VoronoiTests, TestCapPerformance)
         delete[] points_in_radius;
     }
     ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+}
+
+TEST(VoronoiTests, TestCapVerifyResult)
+{
+    for (int w = 0; w < 12; w++)
+    {
+        VoronoiGenerator vg;
+        size_t count = (int)pow(10, ((w / 3) + 1));
+        glm::dvec3* points = vg.genRandomInput(count);
+        vg.generateCap(glm::dvec3(1.0, 1.0, 0.5), points, count);
+        delete[] points;
+
+        // verify that each corner is closest to its origin point
+        unsigned int incorrect = 0;
+        unsigned int corner_count_incorrect = 0;
+        for (unsigned int i = 0; i < vg.m_size; ++i)
+        {
+            VoronoiCell* b = vg.cell_vector + i;
+
+            for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
+            {
+                glm::dvec3 c = *ct;
+                c += (b->position - c) * 0.01;
+
+                long double iclose = glm::dot(b->position, c);
+
+                bool correct = true;
+                for (unsigned int j = 0; j < vg.m_size; ++j)
+                {
+                    if (j != i)
+                    {
+                        VoronoiCell* b2 = vg.cell_vector + j;
+                        long double jclose = glm::dot(b2->position, c);
+                        if (jclose > iclose)
+                            correct = false;
+                    }
+                }
+                if (!correct)
+                    incorrect++;
+            }
+
+            if (b->corners.size() < 3)
+                corner_count_incorrect++;
+        }
+
+        // assert correctness == 100%
+        EXPECT_EQ((unsigned int)0, incorrect);
+        EXPECT_EQ((unsigned int)0, corner_count_incorrect);
+        EXPECT_GE(completedCells+2, count); // there may be 2 arcs on the beachline, but the vertex they converge to has been added
+    }
 }
 
 }

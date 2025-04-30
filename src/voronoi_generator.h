@@ -62,15 +62,18 @@ class VoronoiGenerator
         inline void generateSweepTasks(TaskGraph* tg, SyncXYZ & syncIn, SyncTask* & syncOut);
         inline void generateSortCellCornersTasks(TaskGraph* tg, SyncTask* syncIn, size_t threads);
 
-        inline void generateCapInitCellsTasks(TaskGraph* tg, glm::dvec3* points, SyncTask* & syncOut);
-        inline void generateCapInitSitesTasks(TaskGraph* tg, SyncTask* & syncInOut, const glm::dvec3 & origin);
+        inline void generateRotatePointsTasks(TaskGraph* tg, SyncTask* & syncOut, glm::dmat4 rotation, glm::dvec3* points);
+        inline void generateCapInitCellsTasks(TaskGraph* tg, glm::dvec3* points, SyncTask* & syncInOut);
+        inline void generateCapInitSitesTasks(TaskGraph* tg, SyncTask* & syncInOut);
         inline void generateCapSortPointsTasks(TaskGraph* tg, SyncTask* & syncInOut);
         inline void generateCapSweepTasks(TaskGraph* tg, SyncTask* & syncInOut);
+        inline void generateCapSortCellCornersTasks(TaskGraph* tg, SyncTask* syncIn, size_t threads, glm::dmat4 rotation);
 
         // tests
         FRIEND_TEST(VoronoiTests, TestIntersect);
         FRIEND_TEST(VoronoiTests, TestIntersectDegenerateParabola);
         FRIEND_TEST(VoronoiTests, TestVerifyResult);
+        FRIEND_TEST(VoronoiTests, TestCapVerifyResult);
         FRIEND_TEST(VoronoiTests, TestBeachLine);
         FRIEND_TEST(VoronoiTests, TestCircumcenter);
 };

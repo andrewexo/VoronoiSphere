@@ -18,12 +18,6 @@ public:
     const glm::dvec3 & p, 
     VoronoiCell* cell, 
     Axis a);
-  VoronoiSite(
-    const glm::dvec3 & p, 
-    VoronoiCell* cell, 
-    const glm::dvec3 & origin,
-    const glm::dvec3 & originY,
-    const glm::dvec3 & originZ);
 
   glm::dvec3 m_position;
   double m_azimuth, m_polar;
