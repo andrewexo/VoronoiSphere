@@ -11,38 +11,46 @@ VoronoiSite::VoronoiSite() {}
 
 VoronoiSite::VoronoiSite(
     const glm::dvec3 & p, 
-    VoronoiCell* cell, 
-    Axis a)
+    VoronoiCell* cell) : m_position(p), m_cell(cell)
 {
-    m_position = p;
-    m_cell = cell;
+}
 
-    if (a == X)
-    {
-        m_polar = acos(p.x);
-        m_azimuth = atan2(p.z, p.y);
-        m_polCos = p.x;
-    }
-    else if (a == Y)
-    {
-        m_polar = acos(p.y);
-        m_azimuth = atan2(p.x, p.z);
-        m_polCos = p.y;
-    }
-    else // a == Z
-    {
-        m_polar = acos(p.z);
-        m_azimuth = atan2(p.y, p.x);
-        m_polCos = p.z;
-    }
+inline void computePolarAndAzimuthHelper(VoronoiSite& site)
+{
+    site.m_azimuth /= PI2;
+    site.m_azimuth -= floor(site.m_azimuth);
+    site.m_azimuth *= PI2;
 
-    m_azimuth /= PI2;
-    m_azimuth -= floor(m_azimuth);
-    m_azimuth *= PI2;
+    site.m_polSin = sin(site.m_polar);
+    site.m_aziCosPS = cos(site.m_azimuth) * site.m_polSin;
+    site.m_aziSinPS = sin(site.m_azimuth) * site.m_polSin;
+}
 
-    m_polSin = sin(m_polar);
-    m_aziCosPS = cos(m_azimuth) * m_polSin;
-    m_aziSinPS = sin(m_azimuth) * m_polSin;
+template<>
+void computePolarAndAzimuth<X>(VoronoiSite& site)
+{
+    site.m_polar = acos(site.m_position.x);
+    site.m_azimuth = atan2(site.m_position.z, site.m_position.y);
+    site.m_polCos = site.m_position.x;
+    computePolarAndAzimuthHelper(site);
+}
+
+template<>
+void computePolarAndAzimuth<Y>(VoronoiSite& site)
+{
+    site.m_polar = acos(site.m_position.y);
+    site.m_azimuth = atan2(site.m_position.x, site.m_position.z);
+    site.m_polCos = site.m_position.y;
+    computePolarAndAzimuthHelper(site);
+}
+
+template<>
+void computePolarAndAzimuth<Z>(VoronoiSite& site)
+{
+    site.m_polar = acos(site.m_position.z);
+    site.m_azimuth = atan2(site.m_position.y, site.m_position.x);
+    site.m_polCos = site.m_position.z;
+    computePolarAndAzimuthHelper(site);
 }
 
 }

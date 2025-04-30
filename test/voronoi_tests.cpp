@@ -31,10 +31,14 @@ TEST(VoronoiTests, TestIntersect)
     sl.m_polCos = cos(sl.m_polar);
     sl.m_polSin = sin(sl.m_polar);
 
-    VoronoiSite s1 = VoronoiSite(p1, NULL, Z);
-    VoronoiSite s2 = VoronoiSite(p2, NULL, Z);
-    VoronoiSite s3 = VoronoiSite(p3, NULL, Z);
-    VoronoiSite s4 = VoronoiSite(p4, NULL, Z);
+    VoronoiSite s1 = VoronoiSite(p1, NULL);
+    computePolarAndAzimuth<Z>(s1);
+    VoronoiSite s2 = VoronoiSite(p2, NULL);
+    computePolarAndAzimuth<Z>(s2);
+    VoronoiSite s3 = VoronoiSite(p3, NULL);
+    computePolarAndAzimuth<Z>(s3);
+    VoronoiSite s4 = VoronoiSite(p4, NULL);
+    computePolarAndAzimuth<Z>(s4);
 
     ALIGN(16) double results[2];
     sn.intersect2(&s1, &s2, &s3, &s4, sl, 0.0, results);
@@ -55,8 +59,10 @@ TEST(VoronoiTests, TestIntersectDegenerateParabola)
     sl.m_polCos = p2.z;
     sl.m_polSin = sin(sl.m_polar);
 
-    VoronoiSite s1 = VoronoiSite(p1, NULL, Z);
-    VoronoiSite s2 = VoronoiSite(p2, NULL, Z);
+    VoronoiSite s1 = VoronoiSite(p1, NULL);
+    computePolarAndAzimuth<Z>(s1);
+    VoronoiSite s2 = VoronoiSite(p2, NULL);
+    computePolarAndAzimuth<Z>(s2);
 
     ALIGN(16) double results[2];
     sn.intersect2(&s1, &s2, &s2, &s1, sl, 0.0, results);

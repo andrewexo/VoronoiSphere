@@ -16,8 +16,7 @@ public:
   VoronoiSite();
   VoronoiSite(
     const glm::dvec3 & p, 
-    VoronoiCell* cell, 
-    Axis a);
+    VoronoiCell* cell);
 
   glm::dvec3 m_position;
   double m_azimuth, m_polar;
@@ -27,6 +26,9 @@ public:
 
   VoronoiCell* m_cell;
 };
+
+template<Axis A>
+void computePolarAndAzimuth(VoronoiSite& site);
 
 }
 

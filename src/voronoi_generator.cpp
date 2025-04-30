@@ -874,7 +874,8 @@ void InitSitesTask<A>::process()
 {
     for (unsigned int i = td.start; i <= td.end; i++)
     {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i, A};
+        VoronoiSite site{(td.cells)[i].position, td.cells + i};
+        computePolarAndAzimuth<A>(site);
         (*(td.sites))[i] = site;
     }
 }
@@ -887,7 +888,8 @@ void InitSitesCapTask::process()
 {
     for (unsigned int i = td.start; i <= td.end; i++)
     {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i, X};
+        VoronoiSite site{(td.cells)[i].position, td.cells + i};
+        computePolarAndAzimuth<X>(site);
         (*(td.sites))[i] = site;
     }
 }
