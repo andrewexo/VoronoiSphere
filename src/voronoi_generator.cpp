@@ -65,16 +65,15 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
 
 VoronoiCell* VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count)
 {
-        completedCells = 0;
-        m_size = count;
-        m_gen = count;
-        cell_vector = new VoronoiCell[count];
+    completedCells = 0;
+    m_size = count;
+    m_gen = count;
+    cell_vector = new VoronoiCell[count];
 
-        TaskGraph taskGraph; buildCapTaskGraph(&taskGraph, origin, points);
-        taskGraph.processTasks(2);
-        
-
-        return cell_vector;
+    TaskGraph taskGraph; buildCapTaskGraph(&taskGraph, origin, points);
+    taskGraph.processTasks(2);
+    
+    return cell_vector;
 }
 
 void VoronoiGenerator::buildTaskGraph(TaskGraph* tg, glm::dvec3* points)
@@ -97,11 +96,8 @@ void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin
 
     glm::dvec3 x_axis(1,0,0);
     glm::dvec3 v_normalized = glm::normalize(origin);
-    // Calculate rotation axis (perpendicular to both vectors)
     glm::dvec3 rotation_axis = glm::cross(x_axis, v_normalized);
-    // Calculate rotation angle
     double angle = glm::acos(glm::dot(x_axis, v_normalized));
-    // Create rotation matrix
     glm::dmat4 rotation = glm::rotate(glm::dmat4(1.0), angle, rotation_axis);
     glm::dmat4 rotation_inv = glm::rotate(glm::dmat4(1.0), -angle, rotation_axis);  
 
@@ -251,56 +247,6 @@ inline void VoronoiGenerator
     InitSitesTask<Z>* ist5 = new InitSitesTask<Z>;
     InitSitesTask<Z>* ist6 = new InitSitesTask<Z>;
 
-    ist1->td = { 
-        cell_vector, 
-        0, 
-        (unsigned int)m_size / 2 - 1, 
-        &m_sitesX };
-
-    ist2->td = { 
-        cell_vector, 
-        (unsigned int)m_size / 2,
-        (unsigned int)m_size - 1,	  
-        &m_sitesX };
-
-    ist3->td = { 
-        cell_vector,
-        0,						
-        (unsigned int)m_size / 2 - 1, 
-        &m_sitesY };
-
-    ist4->td = { 
-        cell_vector, 
-        (unsigned int)m_size / 2, 
-        (unsigned int)m_size - 1,	  
-        &m_sitesY };
-
-    ist5->td = { 
-        cell_vector, 
-        0,						
-        (unsigned int)m_size / 2 - 1, 
-        &m_sitesZ };
-
-    ist6->td = { 
-        cell_vector, 
-        (unsigned int)m_size / 2, 
-        (unsigned int)m_size - 1,	  
-        &m_sitesZ };
-
-    tg->addTask(ist1);
-    tg->addTask(ist2);
-    tg->addTask(ist3);
-    tg->addTask(ist4);
-    tg->addTask(ist5);
-    tg->addTask(ist6);
-
-    tg->addDependency(syncIn, ist1);
-    tg->addDependency(syncIn, ist2);
-    tg->addDependency(syncIn, ist3);
-    tg->addDependency(syncIn, ist4);
-    tg->addDependency(syncIn, ist5);
-    tg->addDependency(syncIn, ist6);
-
     SyncTask* syncX = new SyncTask;
     SyncTask* syncY = new SyncTask;
     SyncTask* syncZ = new SyncTask;
@@ -308,12 +254,25 @@ inline void VoronoiGenerator
     tg->addTask(syncY);
     tg->addTask(syncZ);
 
-    tg->addDependency(ist1, syncX);
-    tg->addDependency(ist2, syncX);
-    tg->addDependency(ist3, syncY);
-    tg->addDependency(ist4, syncY);
-    tg->addDependency(ist5, syncZ);
-    tg->addDependency(ist6, syncZ);
+    auto addTask = [&](auto task, unsigned int start, unsigned int end, std::vector<VoronoiSite>& sites, SyncTask* sync)
+    {
+        task->td = { 
+            cell_vector, 
+            start, 
+            end, 
+            &sites 
+        };
+        tg->addTask(task);
+        tg->addDependency(syncIn, task);
+        tg->addDependency(task, sync);
+    };
+
+    addTask(ist1, 0, m_size / 2 - 1, m_sitesX, syncX);
+    addTask(ist2, m_size / 2, m_size - 1, m_sitesX, syncX);
+    addTask(ist3, 0, m_size / 2 - 1, m_sitesY, syncY);
+    addTask(ist4, m_size / 2, m_size - 1, m_sitesY, syncY);
+    addTask(ist5, 0, m_size / 2 - 1, m_sitesZ, syncZ);
+    addTask(ist6, m_size / 2, m_size - 1, m_sitesZ, syncZ);
 
     syncOut.syncX = syncX;
     syncOut.syncY = syncY;
@@ -507,36 +466,23 @@ inline void VoronoiGenerator
     SweepTask<Increasing, Z>* sweepIZ = new SweepTask<Increasing, Z>;
     SweepTask<Decreasing, Z>* sweepDZ = new SweepTask<Decreasing, Z>;
 
-    sweepIX->td = { &m_sitesX, m_gen, 1 };
-    sweepDX->td = { &m_sitesX, m_gen, 1 << 1 };
-    sweepIY->td = { &m_sitesY, m_gen, 1 << 2 };
-    sweepDY->td = { &m_sitesY, m_gen, 1 << 3 };
-    sweepIZ->td = { &m_sitesZ, m_gen, 1 << 4 };
-    sweepDZ->td = { &m_sitesZ, m_gen, 1 << 5 };
-
-    tg->addTask(sweepIX);
-    tg->addTask(sweepIY);
-    tg->addTask(sweepIZ);
-    tg->addTask(sweepDX);
-    tg->addTask(sweepDY);
-    tg->addTask(sweepDZ);
-
-    tg->addDependency(syncIn.syncX, sweepIX);
-    tg->addDependency(syncIn.syncX, sweepDX);
-    tg->addDependency(syncIn.syncY, sweepIY);
-    tg->addDependency(syncIn.syncY, sweepDY);
-    tg->addDependency(syncIn.syncZ, sweepIZ);
-    tg->addDependency(syncIn.syncZ, sweepDZ);
-
     SyncTask* sync = new SyncTask;
     tg->addTask(sync);
 
-    tg->addDependency(sweepIX, sync);
-    tg->addDependency(sweepIY, sync);
-    tg->addDependency(sweepIZ, sync);
-    tg->addDependency(sweepDX, sync);
-    tg->addDependency(sweepDY, sync);
-    tg->addDependency(sweepDZ, sync);
+    auto addTask = [&](auto task, SyncTask* syncIn, std::vector<VoronoiSite>& sites, uint8_t threadId)
+    {
+        task->td = { &sites, m_gen, threadId };
+        tg->addTask(task);
+        tg->addDependency(syncIn, task);
+        tg->addDependency(task, sync);
+    };
+
+    addTask(sweepIX, syncIn.syncX, m_sitesX, 1);
+    addTask(sweepDX, syncIn.syncX, m_sitesX, 1 << 1);
+    addTask(sweepIY, syncIn.syncY, m_sitesY, 1 << 2);
+    addTask(sweepDY, syncIn.syncY, m_sitesY, 1 << 3);
+    addTask(sweepIZ, syncIn.syncZ, m_sitesZ, 1 << 4);
+    addTask(sweepDZ, syncIn.syncZ, m_sitesZ, 1 << 5);
 
     syncOut = sync;
 }
@@ -547,19 +493,15 @@ inline void VoronoiGenerator
     SyncTask *& syncInOut)
 {
     SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
-    //SweepTask<Decreasing, X>* sweepDX = new SweepTask<Decreasing, X>;
 
     sweepIX->td = { &m_sitesX, m_gen, 1 };
-    //sweepDX->td = { &m_sitesX, m_gen, 1 << 1 };
     tg->addTask(sweepIX);
-    //tg->addTask(sweepDX);
     tg->addDependency(syncInOut, sweepIX);
-    //tg->addDependency(syncInOut, sweepDX);
 
     SyncTask* sync = new SyncTask;
     tg->addTask(sync);
     tg->addDependency(sweepIX, sync);
-    //tg->addDependency(sweepDX, sync);
+    
     syncInOut = sync;
 }
 

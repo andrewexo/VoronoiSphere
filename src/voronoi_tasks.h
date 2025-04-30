@@ -85,7 +85,6 @@ struct TaskDataRotateCorners
 class RotatePointsTask : public Task
 {
     public:
-        ~RotatePointsTask() {};
         void process();
         TaskDataRotatePoints td;
 };
@@ -93,7 +92,6 @@ class RotatePointsTask : public Task
 class InitCellsTask : public Task
 {
     public:
-        ~InitCellsTask() {};
         void process();
         TaskDataCells td;
 };
@@ -101,7 +99,6 @@ class InitCellsTask : public Task
 class InitCellsAndResizeSitesTask : public Task
 {
     public:
-        ~InitCellsAndResizeSitesTask() {};
         void process();
         TaskDataCellsResize td;
 };
@@ -110,7 +107,6 @@ template <Axis A>
 class InitSitesTask : public Task
 {
     public:
-        ~InitSitesTask() {};
         void process();
         TaskDataSites td;
 };
@@ -118,7 +114,6 @@ class InitSitesTask : public Task
 class InitSitesCapTask : public Task
 {
     public:
-        ~InitSitesCapTask() {};
         void process();
         TaskDataSites td;
 };
@@ -126,7 +121,6 @@ class InitSitesCapTask : public Task
 class SortPoints1Task : public Task
 {
     public:
-        ~SortPoints1Task() {};
         void process();
         TaskDataDualSort td;
 };
@@ -134,7 +128,6 @@ class SortPoints1Task : public Task
 class SortPoints2Task : public Task
 {
     public:
-        ~SortPoints2Task() {};
         void process();
         TaskDataDualSort td;
 };
@@ -143,7 +136,6 @@ template <Order O, Axis A>
 class SweepTask : public Task
 {
     public:
-        ~SweepTask() {};
         void process();
         TaskDataSweep td;
 };
@@ -151,7 +143,6 @@ class SweepTask : public Task
 class SortCellCornersTask : public Task
 {
     public:
-        ~SortCellCornersTask() {};
         void process();
         TaskDataSortCorners td;
 };
@@ -159,7 +150,6 @@ class SortCellCornersTask : public Task
 class SortCornersRotateTask : public Task
 {
     public:
-        ~SortCornersRotateTask() {};
         void process();
         TaskDataRotateCorners td;
 };
