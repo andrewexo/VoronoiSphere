@@ -20,7 +20,7 @@ endif
 TEST_LINKS = -lgtest -lpthread
 
 
-VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o
+VORONOI_GENERATOR_OBJS = voronoi_event.o voronoi_cell.o voronoi_generator.o voronoi_tasks.o beachline.o priqueue.o globals.o spin_lock.o task_graph.o voronoi_site.o mp_sample_generator.o voronoi_sweeper.o
 TEST_OBJS = tests.o
 
 
@@ -61,6 +61,9 @@ voronoi_site.o: src/voronoi_site.h src/voronoi_site.cpp
 
 voronoi_generator.o: src/voronoi_generator.h src/voronoi_generator.cpp
 	$(COMPILER) src/voronoi_generator.cpp $(FLAGS) -c
+
+voronoi_tasks.o: src/voronoi_tasks.h src/voronoi_tasks.cpp
+	$(COMPILER) src/voronoi_tasks.cpp $(FLAGS) -c
 
 task_graph.o: src/task_graph.h src/task_graph.cpp
 	$(COMPILER) src/task_graph.cpp $(FLAGS) -c

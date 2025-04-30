@@ -1,8 +1,5 @@
-#define GLM_SWIZZLE
-#include "../glm/glm.hpp"
-
 #include "voronoi_generator.h"
-
+#include "voronoi_tasks.h"
 #include "voronoi.h"
 #include "globals.h"
 #include <fstream>
@@ -13,7 +10,6 @@
 #include <mutex>
 #include <atomic>
 #include <thread>
-#include <future>
 #include "../glm/gtc/matrix_transform.hpp"
 
 namespace VorGen {
@@ -27,161 +23,6 @@ namespace VorGen {
 // Global mutex for synchronizing console output
 ::std::mutex cout_mutex;
 #endif
-
-struct TaskDataRotatePoints
-{
-    glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
-    glm::dmat4 rotation;
-};
-
-struct TaskDataCells
-{
-    VoronoiCell* cells;
-    glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
-};
-
-struct TaskDataCellsResize
-{
-    VoronoiCell* cells;
-    glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
-    unsigned int size;
-};
-
-struct TaskDataSites
-{
-    VoronoiCell* cells;
-    unsigned int start;
-    unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
-};
-
-struct TaskDataSitesCap
-{
-    VoronoiCell* cells;
-    unsigned int start;
-    unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
-};
-
-struct TaskDataDualSort
-{
-    ::std::vector<VoronoiSite>* sites;
-    ::std::promise<VoronoiSite*>* p_temps;
-    ::std::promise<bool>* p_done;
-    ::std::future<VoronoiSite*> f_temps;
-    ::std::future<bool> f_done;
-};
-
-struct TaskDataSweep
-{
-    ::std::vector<VoronoiSite>* sites;
-    unsigned int gen;
-    uint8_t taskId;
-};
-
-struct TaskDataSortCorners
-{
-    VoronoiCell* cell_vector;
-    unsigned int start;
-    unsigned int end;
-};
-
-struct TaskDataRotateCorners
-{
-    VoronoiCell* cell_vector;
-    unsigned int start;
-    unsigned int end;
-    glm::dmat4 rotation;
-};
-
-class RotatePointsTask : public Task
-{
-    public:
-        ~RotatePointsTask() {};
-        void process();
-        TaskDataRotatePoints td;
-};
-
-class InitCellsTask : public Task
-{
-    public:
-        ~InitCellsTask() {};
-        void process();
-        TaskDataCells td;
-};
-
-class InitCellsAndResizeSitesTask : public Task
-{
-    public:
-        ~InitCellsAndResizeSitesTask() {};
-        void process();
-        TaskDataCellsResize td;
-};
-
-template <Axis A>
-class InitSitesTask : public Task
-{
-    public:
-        ~InitSitesTask() {};
-        void process();
-        TaskDataSites td;
-};
-
-class InitSitesCapTask : public Task
-{
-    public:
-        ~InitSitesCapTask() {};
-        void process();
-        TaskDataSites td;
-};
-
-class SortPoints1Task : public Task
-{
-    public:
-        ~SortPoints1Task() {};
-        void process();
-        TaskDataDualSort td;
-};
-
-class SortPoints2Task : public Task
-{
-    public:
-        ~SortPoints2Task() {};
-        void process();
-        TaskDataDualSort td;
-};
-
-template <Order O, Axis A>
-class SweepTask : public Task
-{
-    public:
-        ~SweepTask() {};
-        void process();
-        TaskDataSweep td;
-};
-
-class SortCellCornersTask : public Task
-{
-    public:
-        ~SortCellCornersTask() {};
-        void process();
-        TaskDataSortCorners td;
-};
-
-class SortCornersRotateTask : public Task
-{
-    public:
-        ~SortCornersRotateTask() {};
-        void process();
-        TaskDataRotateCorners td;
-};
 
 VoronoiGenerator::VoronoiGenerator()
 {
@@ -234,6 +75,44 @@ VoronoiCell* VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3*
         
 
         return cell_vector;
+}
+
+void VoronoiGenerator::buildTaskGraph(TaskGraph* tg, glm::dvec3* points)
+{
+    SyncTask* sync;
+    SyncXYZ syncXYZ;
+
+    generateInitCellsTasks(tg, points, sync);
+    generateInitSitesTasks(tg, sync, syncXYZ);
+    generateSortPointsTasks(tg, syncXYZ);
+    generateSweepTasks(tg, syncXYZ, sync);
+    generateSortCellCornersTasks(tg, sync, 6);
+
+    tg->finalizeGraph();
+}
+
+void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin, glm::dvec3* points)
+{
+    SyncTask* sync;
+
+    glm::dvec3 x_axis(1,0,0);
+    glm::dvec3 v_normalized = glm::normalize(origin);
+    // Calculate rotation axis (perpendicular to both vectors)
+    glm::dvec3 rotation_axis = glm::cross(x_axis, v_normalized);
+    // Calculate rotation angle
+    double angle = glm::acos(glm::dot(x_axis, v_normalized));
+    // Create rotation matrix
+    glm::dmat4 rotation = glm::rotate(glm::dmat4(1.0), angle, rotation_axis);
+    glm::dmat4 rotation_inv = glm::rotate(glm::dmat4(1.0), -angle, rotation_axis);  
+
+    generateRotatePointsTasks(tg, sync, rotation, points);
+    generateCapInitCellsTasks(tg, points, sync);
+    generateCapInitSitesTasks(tg, sync);
+    generateCapSortPointsTasks(tg, sync);
+    generateCapSweepTasks(tg, sync);
+    generateCapSortCellCornersTasks(tg, sync, 2, rotation_inv);
+
+    tg->finalizeGraph();
 }
 
 inline void VoronoiGenerator
@@ -708,44 +587,6 @@ inline void VoronoiGenerator::generateCapSortCellCornersTasks(TaskGraph * tg, Sy
     }
 }
 
-void VoronoiGenerator::buildTaskGraph(TaskGraph* tg, glm::dvec3* points)
-{
-    SyncTask* sync;
-    SyncXYZ syncXYZ;
-
-    generateInitCellsTasks(tg, points, sync);
-    generateInitSitesTasks(tg, sync, syncXYZ);
-    generateSortPointsTasks(tg, syncXYZ);
-    generateSweepTasks(tg, syncXYZ, sync);
-    generateSortCellCornersTasks(tg, sync, 6);
-
-    tg->finalizeGraph();
-}
-
-void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin, glm::dvec3* points)
-{
-    SyncTask* sync;
-
-    glm::dvec3 x_axis(1,0,0);
-    glm::dvec3 v_normalized = glm::normalize(origin);
-    // Calculate rotation axis (perpendicular to both vectors)
-    glm::dvec3 rotation_axis = glm::cross(x_axis, v_normalized);
-    // Calculate rotation angle
-    double angle = glm::acos(glm::dot(x_axis, v_normalized));
-    // Create rotation matrix
-    glm::dmat4 rotation = glm::rotate(glm::dmat4(1.0), angle, rotation_axis);
-    glm::dmat4 rotation_inv = glm::rotate(glm::dmat4(1.0), -angle, rotation_axis);  
-
-    generateRotatePointsTasks(tg, sync, rotation, points);
-    generateCapInitCellsTasks(tg, points, sync);
-    generateCapInitSitesTasks(tg, sync);
-    generateCapSortPointsTasks(tg, sync);
-    generateCapSweepTasks(tg, sync);
-    generateCapSortCellCornersTasks(tg, sync, 2, rotation_inv);
-
-    tg->finalizeGraph();
-}
-
 inline void VoronoiGenerator::writeCell(::std::ofstream & os, int i)
 {
     if (cell_vector[i].m_arcs != 0)
@@ -770,7 +611,6 @@ inline void VoronoiGenerator::writeCell(::std::ofstream & os, int i)
     }
         
 }
-
 
 void VoronoiGenerator::writeDataToFile()
 {
@@ -847,178 +687,6 @@ inline void VoronoiGenerator::writeCellOBJ(::std::ofstream & os, int i)
     // write face
     idx += "\n";
     os.write(idx.c_str(), idx.length());   
-}
-
-void RotatePointsTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-        td.points[i] = (td.rotation * glm::dvec4(td.points[i], 1.0)).xyz();
-}
-
-void InitCellsTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-        new(td.cells + i) VoronoiCell(td.points[i]);
-}
-
-void InitCellsAndResizeSitesTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-        new(td.cells + i) VoronoiCell(td.points[i]);
-
-    td.sites->resize(td.size);
-}
-
-template<Axis A>
-void InitSitesTask<A>::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i};
-        computePolarAndAzimuth<A>(site);
-        (*(td.sites))[i] = site;
-    }
-}
-
-template class InitSitesTask<X>;
-template class InitSitesTask<Y>;
-template class InitSitesTask<Z>;
-
-void InitSitesCapTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i};
-        computePolarAndAzimuth<X>(site);
-        (*(td.sites))[i] = site;
-    }
-}
-
-void SortPoints1Task::process()
-{
-    // sort array half
-    unsigned int size = (unsigned int)td.sites->size() / 2;
-    VoronoiSiteCompare voronoiSiteCompare;
-    ::std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
-
-    // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data(), size * sizeof(VoronoiSite));
-
-    // send data to other thread
-    td.p_temps->set_value(scratch);
-    VoronoiSite* scratch2 = td.f_temps.get();
-
-    // merge into original array
-    int a = 0; int b = 0;
-    for (unsigned int i = 0; i < size; i++)
-    {
-        if (voronoiSiteCompare(scratch[a], scratch2[b]))
-            (*td.sites)[i] = scratch[a++];
-        else
-            (*td.sites)[i] = scratch2[b++];
-    }
-
-    // wait for other thread
-    td.p_done->set_value(true);
-    bool ready = td.f_done.get();
-
-    // cleanup temp memory
-    delete[] scratch;
-    delete[] td.p_temps;
-    delete[] td.p_done;
-}
-
-void SortPoints2Task::process()
-{
-    // sort array half
-    unsigned int size1 = (unsigned int)td.sites->size() / 2;
-    unsigned int size = (unsigned int)td.sites->size() - size1;
-    VoronoiSiteCompare voronoiSiteCompare;
-    ::std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
-
-    // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data() + size1, size * sizeof(VoronoiSite));
-
-    // send data to other thread
-    td.p_temps->set_value(scratch);
-    VoronoiSite* scratch1 = td.f_temps.get();
-
-    // merge into original array
-    int a = size1 - 1; int b = size - 1;
-    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size; i--)
-    {
-        if (a < 0 || voronoiSiteCompare(scratch1[a], scratch[b]))
-            (*td.sites)[i] = scratch[b--];
-        else
-            (*td.sites)[i] = scratch1[a--];
-    }
-
-    // wait for other thread
-    td.p_done->set_value(true);
-    bool ready = td.f_done.get();
-
-    // delete scratch
-    delete[] scratch;
-}
-
-template<Order O, Axis A>
-inline void SweepTask<O, A>::process()
-{
-#ifdef ENABLE_SWEEP_TIMERS
-    boost::timer::cpu_timer timer;
-#endif
-    
-    VoronoiSweeper<O, A> voronoiSweeper(td.sites, td.gen, td.taskId);
-    voronoiSweeper.sweep();
-    
-#ifdef ENABLE_SWEEP_TIMERS
-    ::std::string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
-    ::std::string axisStr;
-    if (A == X) axisStr = "X";
-    else if (A == Y) axisStr = "Y";
-    else axisStr = "Z";
-    
-    ::std::lock_guard<::std::mutex> lock(cout_mutex);
-    ::std::cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << ::std::endl;
-#endif
-}
-
-template class SweepTask<Increasing, X>;
-template class SweepTask<Increasing, Y>;
-template class SweepTask<Increasing, Z>;
-template class SweepTask<Decreasing, X>;
-template class SweepTask<Decreasing, Y>;
-template class SweepTask<Decreasing, Z>;
-
-void SortCellCornersTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        if (td.cell_vector[i].corners.size() == 0)
-            continue;
-        (td.cell_vector[i]).sortCorners();
-#ifdef CENTROID
-        (td.cell_vector[i]).computeCentroid();
-#endif
-    }
-}
-
-void SortCornersRotateTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        (td.cell_vector[i]).sortCorners();
-        for (unsigned int j = 0; j < td.cell_vector[i].corners.size(); j++)
-        {
-            td.cell_vector[i].corners[j] = (td.rotation * glm::dvec4(td.cell_vector[i].corners[j], 1.0)).xyz();
-        }
-#ifdef CENTROID
-        (td.cell_vector[i]).computeCentroid();
-#endif
-        td.cell_vector[i].position = (td.rotation * glm::dvec4(td.cell_vector[i].position, 1.0)).xyz();
-    }
 }
 
 }
