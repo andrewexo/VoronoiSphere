@@ -224,8 +224,8 @@ inline void VoronoiGenerator
         tg->addDependency(task, syncX);
     };
 
-    addTask(new InitSitesCapTask, TaskDataSites{cell_vector, 0, m_size/2 - 1, &m_sitesX});
-    addTask(new InitSitesCapTask, TaskDataSites{cell_vector, m_size/2, m_size-1, &m_sitesX});
+    addTask(new InitSitesTask<X>, TaskDataSites{cell_vector, 0, m_size/2 - 1, &m_sitesX});
+    addTask(new InitSitesTask<X>, TaskDataSites{cell_vector, m_size/2, m_size-1, &m_sitesX});
 
     syncInOut = syncX;
 }

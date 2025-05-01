@@ -43,16 +43,6 @@ template class InitSitesTask<X>;
 template class InitSitesTask<Y>;
 template class InitSitesTask<Z>;
 
-void InitSitesCapTask::process()
-{
-    for (unsigned int i = td.start; i <= td.end; i++)
-    {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i};
-        computePolarAndAzimuth<X>(site);
-        (*(td.sites))[i] = site;
-    }
-}
-
 void SortPoints1Task::process()
 {
     // sort array half

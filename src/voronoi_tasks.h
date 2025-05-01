@@ -111,13 +111,6 @@ class InitSitesTask : public Task
         TaskDataSites td;
 };
 
-class InitSitesCapTask : public Task
-{
-    public:
-        void process();
-        TaskDataSites td;
-};
-
 class SortPoints1Task : public Task
 {
     public:
