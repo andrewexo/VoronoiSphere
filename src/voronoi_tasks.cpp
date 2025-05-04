@@ -135,9 +135,9 @@ void BucketSort1Task::process()
     }
 
     // Sort each bucket
-    // for (unsigned int i = 0; i < num_buckets; i++)
-    //     sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
-    concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
+    for (unsigned int i = 0; i < num_buckets; i++)
+        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    //concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);
@@ -214,9 +214,9 @@ void BucketSort2Task::process()
     }
 
     // Sort each bucket
-    // for (unsigned int i = 0; i < num_buckets; i++)
-    //     sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
-    concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
+    for (unsigned int i = 0; i < num_buckets; i++)
+        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    //concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);
