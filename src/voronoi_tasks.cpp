@@ -48,7 +48,7 @@ void SortPoints1Task::process()
     // sort array half
     unsigned int size = (unsigned int)td.sites->size() / 2;
     VoronoiSiteCompare voronoiSiteCompare;
-    ::std::sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
+    sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
 
     // copy into scratch array
     VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
@@ -84,7 +84,7 @@ void SortPoints2Task::process()
     unsigned int size1 = (unsigned int)td.sites->size() / 2;
     unsigned int size = (unsigned int)td.sites->size() - size1;
     VoronoiSiteCompare voronoiSiteCompare;
-    ::std::sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
+    sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
 
     // copy into scratch array
     VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
@@ -112,6 +112,157 @@ void SortPoints2Task::process()
     delete[] scratch;
 }
 
+void BucketSort1Task::process()
+{
+    // sort array half
+    unsigned int size = (unsigned int)td.sites->size() / 2;
+    VoronoiSiteCompare voronoiSiteCompare;
+    
+    // Make buckets
+    size_t bucket_size = 128;
+    size_t num_buckets = (size + bucket_size - 1) / bucket_size;
+    vector<vector<VoronoiSite>> buckets;
+    buckets.resize(num_buckets);
+    for (unsigned int i = 0; i < num_buckets; i++)
+        buckets[i].reserve(bucket_size);
+
+    // Distribute sites into buckets
+    for (unsigned int i = 0; i < size; i++)
+    {
+        size_t bucket_index = ::std::min((size_t)(((*td.sites)[i].m_polar / (M_PI/2.0)) * num_buckets), num_buckets-1);
+        buckets[bucket_index].push_back((*td.sites)[i]);
+    }
+
+    // Sort each bucket
+    for (unsigned int i = 0; i < num_buckets; i++)
+        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+
+    // send data to other thread
+    td.p_temps->set_value(&buckets);
+    vector<vector<VoronoiSite>>* buckets2 = td.f_temps.get();
+
+    // merge into original array
+    size_t a = 0; size_t ai = 0;
+    size_t b = 0; size_t bi = 0;
+    while (buckets[a].size() <= ai)
+    {
+        ai = 0;
+        a++;
+    }
+    while ((*buckets2)[b].size() <= bi)
+    {
+        bi = 0;
+        b++;
+    }
+    for (unsigned int i = 0; i < size; i++)
+    {
+        VoronoiSite* site1 = &buckets[a][ai];
+        VoronoiSite* site2 = &((*buckets2)[b][bi]);
+        if (voronoiSiteCompare(*site1, *site2))
+        {
+            (*td.sites)[i] = *site1;
+            ai++;
+            while (buckets[a].size() <= ai)
+            {
+                ai = 0;
+                a++;
+            }
+        }
+        else
+        {
+            (*td.sites)[i] = *site2;
+            bi++;
+            while ((*buckets2)[b].size() <= bi)
+            {
+                bi = 0;
+                b++;
+            }
+        }
+    }
+
+    // wait for other thread
+    td.p_done->set_value(true);
+    bool ready = td.f_done.get();
+
+    // cleanup temp memory
+    delete[] td.p_temps;
+    delete[] td.p_done;
+}
+
+void BucketSort2Task::process()
+{
+    // sort array half
+    unsigned int size1 = (unsigned int)td.sites->size() / 2;
+    unsigned int size = (unsigned int)td.sites->size() - size1;
+    VoronoiSiteCompare voronoiSiteCompare;
+    
+    // Make buckets
+    size_t bucket_size = 128;
+    size_t num_buckets = (size + bucket_size - 1) / bucket_size;
+    vector<vector<VoronoiSite>> buckets;
+    buckets.resize(num_buckets);
+    for (unsigned int i = 0; i < num_buckets; i++)
+        buckets[i].reserve(bucket_size);
+
+    // Distribute sites into buckets
+    for (unsigned int i = size1; i < td.sites->size(); i++)
+    {
+        size_t bucket_index = ::std::min((size_t)(((*td.sites)[i].m_polar / (M_PI/2.0)) * num_buckets), num_buckets-1);
+        buckets[bucket_index].push_back((*td.sites)[i]);
+    }
+
+    // Sort each bucket
+    for (unsigned int i = 0; i < num_buckets; i++)
+        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+
+    // send data to other thread
+    td.p_temps->set_value(&buckets);
+    vector<vector<VoronoiSite>>* buckets1 = td.f_temps.get();
+
+    // merge into original array
+    size_t a = buckets1->size() - 1; int ai = buckets1->at(a).size() - 1;
+    size_t b = buckets.size() - 1; int bi = buckets.at(b).size() - 1;
+    while(ai < 0)
+    {
+        a--;
+        ai = buckets1->at(a).size() - 1;
+    }
+    while(bi < 0)
+    {
+        b--;
+        bi = buckets.at(b).size() - 1;
+    }
+    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
+    {
+        VoronoiSite* site1 = &((*buckets1)[a][ai]);
+        VoronoiSite* site2 = &buckets[b][bi];
+        if (voronoiSiteCompare(*site1, *site2))
+        {
+            (*td.sites)[i] = *site2;
+            bi--;
+            while(bi < 0)
+            {
+                b--;
+                bi = buckets.at(b).size() - 1;
+            }
+        }
+        else
+        {
+            (*td.sites)[i] = *site1;
+            ai--;
+            while(ai < 0)
+            {
+                a--;
+                ai = buckets1->at(a).size() - 1;
+            }
+        }
+    }
+
+    // wait for other thread
+    td.p_done->set_value(true);
+    bool ready = td.f_done.get();
+}
+
 template<Order O, Axis A>
 inline void SweepTask<O, A>::process()
 {
@@ -123,14 +274,14 @@ inline void SweepTask<O, A>::process()
     voronoiSweeper.sweep();
     
 #ifdef ENABLE_SWEEP_TIMERS
-    ::std::string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
-    ::std::string axisStr;
+    string orderStr = (O == Increasing) ? "Increasing" : "Decreasing";
+    string axisStr;
     if (A == X) axisStr = "X";
     else if (A == Y) axisStr = "Y";
     else axisStr = "Z";
     
-    ::std::lock_guard<::std::mutex> lock(cout_mutex);
-    ::std::cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << ::std::endl;
+    lock_guard<mutex> lock(cout_mutex);
+    cout << "SweepTask<" << orderStr << ", " << axisStr << "> process time: " << timer.format() << endl;
 #endif
 }
 

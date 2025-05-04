@@ -12,6 +12,8 @@ namespace VorGen {
 
 //#define CENTROID
 
+using ::std::vector;
+
 class VoronoiGenerator
 {
     public:
@@ -37,9 +39,9 @@ class VoronoiGenerator
         // to be generated
 		uint m_gen;
 
-        ::std::vector<VoronoiSite> m_sitesX;
-        ::std::vector<VoronoiSite> m_sitesY;
-        ::std::vector<VoronoiSite> m_sitesZ;
+        vector<VoronoiSite> m_sitesX;
+        vector<VoronoiSite> m_sitesY;
+        vector<VoronoiSite> m_sitesZ;
 
         void writeDataToFile();
         void writeDataToOBJ();

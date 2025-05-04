@@ -7,7 +7,12 @@
 #include "task_graph.h"
 #include <future>
 #include <vector>
+
 namespace VorGen {
+
+using ::std::vector;
+using ::std::promise;
+using ::std::future;
 
 struct TaskDataRotatePoints
 {
@@ -31,7 +36,7 @@ struct TaskDataCellsResize
     glm::dvec3* points;
     unsigned int start;
     unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
+    vector<VoronoiSite>* sites;
     unsigned int size;
 };
 
@@ -40,7 +45,7 @@ struct TaskDataSites
     VoronoiCell* cells;
     unsigned int start;
     unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
+    vector<VoronoiSite>* sites;
 };
 
 struct TaskDataSitesCap
@@ -48,21 +53,30 @@ struct TaskDataSitesCap
     VoronoiCell* cells;
     unsigned int start;
     unsigned int end;
-    ::std::vector<VoronoiSite>* sites;
+    vector<VoronoiSite>* sites;
 };
 
 struct TaskDataDualSort
 {
-    ::std::vector<VoronoiSite>* sites;
-    ::std::promise<VoronoiSite*>* p_temps;
-    ::std::promise<bool>* p_done;
-    ::std::future<VoronoiSite*> f_temps;
-    ::std::future<bool> f_done;
+    vector<VoronoiSite>* sites;
+    promise<VoronoiSite*>* p_temps;
+    promise<bool>* p_done;
+    future<VoronoiSite*> f_temps;
+    future<bool> f_done;
+};
+
+struct TaskDataBucketDualSort
+{
+    vector<VoronoiSite>* sites;
+    promise<vector<vector<VoronoiSite>>*>* p_temps;
+    promise<bool>* p_done;
+    future<vector<vector<VoronoiSite>>*> f_temps;
+    future<bool> f_done;
 };
 
 struct TaskDataSweep
 {
-    ::std::vector<VoronoiSite>* sites;
+    vector<VoronoiSite>* sites;
     unsigned int gen;
     uint8_t taskId;
 };
@@ -123,6 +137,20 @@ class SortPoints2Task : public Task
     public:
         void process();
         TaskDataDualSort td;
+};
+
+class BucketSort1Task : public Task
+{
+    public:
+        void process();
+        TaskDataBucketDualSort td;
+};
+
+class BucketSort2Task : public Task
+{
+    public:
+        void process();
+        TaskDataBucketDualSort td;
 };
 
 template <Order O, Axis A>

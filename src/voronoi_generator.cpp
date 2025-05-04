@@ -24,6 +24,9 @@ namespace VorGen {
 ::std::mutex cout_mutex;
 #endif
 
+using ::std::promise;
+using ::std::future;
+
 VoronoiGenerator::VoronoiGenerator()
 {
     cell_vector = NULL;
@@ -228,13 +231,13 @@ inline void VoronoiGenerator
 
 inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & syncInOut)
 {
-    auto p_temps1 = new ::std::promise<VoronoiSite*>[2];
-    auto p_temps2 = new ::std::promise<VoronoiSite*>[2];
-    auto p_temps3 = new ::std::promise<VoronoiSite*>[2];
+    auto p_temps1 = new promise<VoronoiSite*>[2];
+    auto p_temps2 = new promise<VoronoiSite*>[2];
+    auto p_temps3 = new promise<VoronoiSite*>[2];
     
-    auto p_done1 = new ::std::promise<bool>[2];
-    auto p_done2 = new ::std::promise<bool>[2];
-    auto p_done3 = new ::std::promise<bool>[2];
+    auto p_done1 = new promise<bool>[2];
+    auto p_done2 = new promise<bool>[2];
+    auto p_done3 = new promise<bool>[2];
 
     SyncTask* syncX = new SyncTask;
     SyncTask* syncY = new SyncTask;
@@ -268,8 +271,8 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
 
 inline void VoronoiGenerator::generateCapSortPointsTasks(TaskGraph * tg, SyncTask* & syncInOut)
 {
-    auto p_temps = new ::std::promise<VoronoiSite*>[2];
-    auto p_done = new ::std::promise<bool>[2];
+    auto p_temps = new promise<VoronoiSite*>[2];
+    auto p_done = new promise<bool>[2];
 
     SyncTask* syncX = new SyncTask;
     tg->addTask(syncX);

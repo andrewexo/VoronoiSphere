@@ -308,7 +308,9 @@ TEST(VoronoiTests, SortPointsTest)
         sites.reserve(count);
         for (size_t j = 0; j < count; j++)
         {
-            sites.push_back(VoronoiSite(glm::dvec3(static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX), NULL));
+            glm::dvec3 p = glm::dvec3(static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX);
+            p = glm::normalize(p);
+            sites.push_back(VoronoiSite(p, NULL));
             computePolarAndAzimuth<X>(sites.back());
         }
 
@@ -327,6 +329,59 @@ TEST(VoronoiTests, SortPointsTest)
 
         addTask(new SortPoints1Task, sites, p_temps, p_done, p_temps+1, p_done+1);
         addTask(new SortPoints2Task, sites, p_temps+1, p_done+1, p_temps, p_done);
+        taskGraph.finalizeGraph();
+
+        total.resume();
+        taskGraph.processTasks(2);
+        total.stop();
+
+        // verify that the sites are sorted
+        bool sorted = true;
+        for (size_t i = 0; i < sites.size()-1; i++)
+        {
+            if (sites[i].m_polar > sites[i+1].m_polar)
+            {
+                sorted = false;
+                break;
+            }
+        }
+        EXPECT_TRUE(sorted);
+    }
+    ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
+}
+
+TEST(VoronoiTests, BucketSortTest)
+{
+    ::boost::timer::cpu_timer total;
+    size_t runs = 10;
+    for (size_t i = 0; i < runs; i++)
+    {
+        ::std::vector<VoronoiSite> sites;
+        size_t count = 1000000+(i%2);
+        sites.reserve(count);
+        for (size_t j = 0; j < count; j++)
+        {
+            glm::dvec3 p = glm::dvec3(static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX);
+            p = glm::normalize(p);
+            sites.push_back(VoronoiSite(p, NULL));
+            computePolarAndAzimuth<X>(sites.back());
+        }
+
+        TaskGraph taskGraph;
+        
+        auto p_temps = new ::std::promise<vector<vector<VoronoiSite>>*>[2];
+        auto p_done = new ::std::promise<bool>[2];
+
+        auto addTask = [&](auto task, std::vector<VoronoiSite>& sites, 
+                        auto p_temps, auto p_done, 
+                        auto p_temps2, auto p_done2)
+        {
+            task->td = { &sites, p_temps, p_done, p_temps2->get_future(), p_done2->get_future() };
+            taskGraph.addTask(task);
+        };
+
+        addTask(new BucketSort1Task, sites, p_temps, p_done, p_temps+1, p_done+1);
+        addTask(new BucketSort2Task, sites, p_temps+1, p_done+1, p_temps, p_done);
         taskGraph.finalizeGraph();
 
         total.resume();
