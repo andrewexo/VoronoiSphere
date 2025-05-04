@@ -96,7 +96,7 @@ void SortPoints2Task::process()
 
     // merge into original array
     int a = size1 - 1; int b = size - 1;
-    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size; i--)
+    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
     {
         if (a < 0 || voronoiSiteCompare(scratch1[a], scratch[b]))
             (*td.sites)[i] = scratch[b--];

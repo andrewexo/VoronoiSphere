@@ -8,6 +8,9 @@
 #include "../src/platform.h"
 #include <iostream>
 #include <vector>
+#include <future>
+#include "../src/task_graph.h"
+#include "../src/voronoi_tasks.h"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -78,7 +81,7 @@ TEST(VoronoiTests, TestVerifyResult)
         VoronoiGenerator vg;
         size_t count = (int)pow(10, ((w / 3) + 1));
         glm::dvec3* points = vg.genRandomInput(count);
-        vg.generate(points, count, count, false);
+        VoronoiCell* cells = vg.generate(points, count, count, false);
         delete[] points;
 
         // verify that each corner is closest to its origin point
@@ -87,7 +90,7 @@ TEST(VoronoiTests, TestVerifyResult)
         unsigned int corner_count_incorrect = 0;
         for (unsigned int i = 0; i < vg.m_size; ++i)
         {
-            VoronoiCell* b = vg.cell_vector + i;
+            VoronoiCell* b = cells + i;
             //corner_sum += (unsigned int)b->corners.size();
 
             for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
@@ -102,7 +105,7 @@ TEST(VoronoiTests, TestVerifyResult)
                 {
                     if (j != i)
                     {
-                        VoronoiCell* b2 = vg.cell_vector + j;
+                        VoronoiCell* b2 = cells + j;
                         long double jclose = glm::dot(b2->position, c);
                         if (jclose > iclose)
                             correct = false;
@@ -115,6 +118,7 @@ TEST(VoronoiTests, TestVerifyResult)
             if (b->corners.size() < 3)
                 corner_count_incorrect++;
         }
+        delete[] cells;
 
         // assert correctness == 100%
         EXPECT_EQ((unsigned int)0, incorrect);
@@ -189,9 +193,9 @@ TEST(VoronoiTests, TestPerformance)
         glm::dvec3* points = vg.genRandomInput(count);
 
         total.resume();
-        vg.generate(points, count, count, false);
+        VoronoiCell* cells = vg.generate(points, count, count, false);
         total.stop();
-        vg.clear();
+        delete[] cells;
 
         delete[] points;
     }
@@ -218,12 +222,12 @@ TEST(VoronoiTests, TestCapPerformance)
                 points_in_radius[j++] = points[i];
         }
 
-        ::std::cout << "points in radius: " << j << ::std::endl;
+        //::std::cout << "points in radius: " << j << ::std::endl;
 
         total.resume();
-        vg.generateCap(origin, points_in_radius, j);
+        VoronoiCell* cells = vg.generateCap(origin, points_in_radius, j);
         total.stop();
-        vg.clear();
+        delete[] cells;
 
         delete[] points;
         delete[] points_in_radius;
@@ -233,20 +237,31 @@ TEST(VoronoiTests, TestCapPerformance)
 
 TEST(VoronoiTests, TestCapVerifyResult)
 {
-    for (int w = 0; w < 12; w++)
+    for (int w = 0; w < 28; w++)
     {
         VoronoiGenerator vg;
-        size_t count = (int)pow(10, ((w / 3) + 1));
+        size_t count = (int)pow(10, ((w / 7) + 3));
         glm::dvec3* points = vg.genRandomInput(count);
-        vg.generateCap(glm::dvec3(1.0, 1.0, 0.5), points, count);
+
+        ::std::vector<glm::dvec3> cap_points;
+        glm::dvec3 nPos = glm::normalize(glm::dvec3(0,0,-1));
+        for (uint i = 0; i < count; i++)
+        {
+            if (glm::dot(points[i], nPos) > 0.99)
+                cap_points.push_back(points[i]);
+        }
         delete[] points;
+
+        VoronoiCell* cells = vg.generateCap(glm::dvec3(1.0, 1.0, 0.5), cap_points.data(), cap_points.size());
+        if (cells == NULL)
+            continue;
 
         // verify that each corner is closest to its origin point
         unsigned int incorrect = 0;
         unsigned int corner_count_incorrect = 0;
         for (unsigned int i = 0; i < vg.m_size; ++i)
         {
-            VoronoiCell* b = vg.cell_vector + i;
+            VoronoiCell* b = cells + i;
 
             for (auto ct = b->corners.begin(); ct != b->corners.end(); ++ct)
             {
@@ -260,7 +275,7 @@ TEST(VoronoiTests, TestCapVerifyResult)
                 {
                     if (j != i)
                     {
-                        VoronoiCell* b2 = vg.cell_vector + j;
+                        VoronoiCell* b2 = cells + j;
                         long double jclose = glm::dot(b2->position, c);
                         if (jclose > iclose)
                             correct = false;
@@ -273,12 +288,64 @@ TEST(VoronoiTests, TestCapVerifyResult)
             if (b->corners.size() < 3)
                 corner_count_incorrect++;
         }
+        delete[] cells;
 
         // assert correctness == 100%
         EXPECT_EQ((unsigned int)0, incorrect);
         EXPECT_EQ((unsigned int)0, corner_count_incorrect);
-        EXPECT_GE(completedCells+2, count); // there may be 2 arcs on the beachline, but the vertex they converge to has been added
+        EXPECT_GE(completedCells+2, vg.m_size); // there may be 2 arcs on the beachline, but the vertex they converge to has been added
     }
+}
+
+TEST(VoronoiTests, SortPointsTest)
+{
+    ::boost::timer::cpu_timer total;
+    size_t runs = 10;
+    for (size_t i = 0; i < runs; i++)
+    {
+        ::std::vector<VoronoiSite> sites;
+        size_t count = 1000000+(i%2);
+        sites.reserve(count);
+        for (size_t j = 0; j < count; j++)
+        {
+            sites.push_back(VoronoiSite(glm::dvec3(static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX), NULL));
+            computePolarAndAzimuth<X>(sites.back());
+        }
+
+        TaskGraph taskGraph;
+        
+        auto p_temps = new ::std::promise<VoronoiSite*>[2];
+        auto p_done = new ::std::promise<bool>[2];
+
+        auto addTask = [&](auto task, std::vector<VoronoiSite>& sites, 
+                        auto p_temps, auto p_done, 
+                        auto p_temps2, auto p_done2)
+        {
+            task->td = { &sites, p_temps, p_done, p_temps2->get_future(), p_done2->get_future() };
+            taskGraph.addTask(task);
+        };
+
+        addTask(new SortPoints1Task, sites, p_temps, p_done, p_temps+1, p_done+1);
+        addTask(new SortPoints2Task, sites, p_temps+1, p_done+1, p_temps, p_done);
+        taskGraph.finalizeGraph();
+
+        total.resume();
+        taskGraph.processTasks(2);
+        total.stop();
+
+        // verify that the sites are sorted
+        bool sorted = true;
+        for (size_t i = 0; i < sites.size()-1; i++)
+        {
+            if (sites[i].m_polar > sites[i+1].m_polar)
+            {
+                sorted = false;
+                break;
+            }
+        }
+        EXPECT_TRUE(sorted);
+    }
+    ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
 }
 
 }

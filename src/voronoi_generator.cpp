@@ -36,13 +36,6 @@ VoronoiGenerator::VoronoiGenerator(uint seed) : sample_generator(seed)
 
 VoronoiGenerator::~VoronoiGenerator()
 {
-    if (cell_vector) delete[] cell_vector;
-}
-
-void VoronoiGenerator::clear()
-{
-    if (cell_vector) delete[] cell_vector;
-    cell_vector = NULL;
 }
 
 glm::dvec3 * VoronoiGenerator::genRandomInput(int count)
@@ -50,7 +43,7 @@ glm::dvec3 * VoronoiGenerator::genRandomInput(int count)
     return sample_generator.getRandomPointsSphere(count);
 }
 
-void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool writeToFile)
+VoronoiCell* VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool writeToFile)
 {
     completedCells = 0;
     m_size = count;
@@ -61,10 +54,13 @@ void VoronoiGenerator::generate(glm::dvec3* points, int count, int gen, bool wri
     taskGraph.processTasks(6);
 
     if (writeToFile) writeDataToOBJ();
+    return cell_vector;
 }
 
 VoronoiCell* VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3* points, int count)
 {
+    if (count < 3) return NULL;
+
     completedCells = 0;
     m_size = count;
     m_gen = count;

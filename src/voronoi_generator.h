@@ -21,9 +21,8 @@ class VoronoiGenerator
         ~VoronoiGenerator();
 
         glm::dvec3* genRandomInput(int count);
-        void generate(glm::dvec3* points, int count, int gen, bool writeToFile);
+        VoronoiCell* generate(glm::dvec3* points, int count, int gen, bool writeToFile);
         VoronoiCell* generateCap(const glm::dvec3& origin, glm::dvec3* points, int count);
-        void clear();
 
     private:
 
