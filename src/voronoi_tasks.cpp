@@ -125,7 +125,7 @@ void BucketSort1Task::process()
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
     for (unsigned int i = 0; i < num_buckets; i++)
-        buckets[i].reserve(bucket_size);
+        buckets[i].reserve(bucket_size * 1.2);
 
     // Distribute sites into buckets
     for (unsigned int i = 0; i < size; i++)
@@ -204,7 +204,7 @@ void BucketSort2Task::process()
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
     for (unsigned int i = 0; i < num_buckets; i++)
-        buckets[i].reserve(bucket_size);
+        buckets[i].reserve(bucket_size * 1.2);
 
     // Distribute sites into buckets
     for (unsigned int i = size1; i < td.sites->size(); i++)
