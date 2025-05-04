@@ -3,6 +3,7 @@
 #include "voronoi_tasks.h"
 #include "voronoi_event_compare.h"
 #include "voronoi.h"
+#include "concurrent.inl"
 #include <algorithm>
 #include <cstring>
 
@@ -119,7 +120,7 @@ void BucketSort1Task::process()
     VoronoiSiteCompare voronoiSiteCompare;
     
     // Make buckets
-    size_t bucket_size = 128;
+    size_t bucket_size = 64;
     size_t num_buckets = (size + bucket_size - 1) / bucket_size;
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
@@ -134,8 +135,9 @@ void BucketSort1Task::process()
     }
 
     // Sort each bucket
-    for (unsigned int i = 0; i < num_buckets; i++)
-        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    // for (unsigned int i = 0; i < num_buckets; i++)
+    //     sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);
@@ -197,7 +199,7 @@ void BucketSort2Task::process()
     VoronoiSiteCompare voronoiSiteCompare;
     
     // Make buckets
-    size_t bucket_size = 128;
+    size_t bucket_size = 64;
     size_t num_buckets = (size + bucket_size - 1) / bucket_size;
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
@@ -212,8 +214,9 @@ void BucketSort2Task::process()
     }
 
     // Sort each bucket
-    for (unsigned int i = 0; i < num_buckets; i++)
-        sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    // for (unsigned int i = 0; i < num_buckets; i++)
+    //     sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
+    concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);
