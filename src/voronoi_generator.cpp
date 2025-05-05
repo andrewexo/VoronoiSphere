@@ -4,12 +4,7 @@
 #include "globals.h"
 #include <fstream>
 #include <iostream>
-#include <math.h>
-#include <algorithm>
-#include <cstring>
-#include <mutex>
-#include <atomic>
-#include <thread>
+
 #include "../glm/gtc/matrix_transform.hpp"
 
 namespace VorGen {
@@ -28,7 +23,7 @@ using ::std::promise;
 using ::std::future;
 using ::std::unique_ptr;
 using ::std::move;
-using ::std::make_unique;
+
 VoronoiGenerator::VoronoiGenerator()
 {
     cell_vector = NULL;
@@ -71,8 +66,14 @@ VoronoiCell* VoronoiGenerator::generateCap(const glm::dvec3& origin, glm::dvec3*
     m_gen = count;
     cell_vector = new VoronoiCell[count];
 
-    TaskGraph taskGraph; buildCapTaskGraph(&taskGraph, origin, points);
+    glm::dvec3* points_copy = new glm::dvec3[m_size];
+    for (size_t i = 0; i < m_size; i++)
+        points_copy[i] = points[i];
+
+    TaskGraph taskGraph; buildCapTaskGraph(&taskGraph, origin, points_copy);
     taskGraph.processTasks(2);
+
+    delete[] points_copy;
     
     return cell_vector;
 }
@@ -100,7 +101,7 @@ void VoronoiGenerator::buildCapTaskGraph(TaskGraph* tg, const glm::dvec3& origin
     glm::dvec3 rotation_axis = glm::cross(x_axis, v_normalized);
     double angle = glm::acos(glm::dot(x_axis, v_normalized));
     glm::dmat4 rotation = glm::rotate(glm::dmat4(1.0), angle, rotation_axis);
-    glm::dmat4 rotation_inv = glm::rotate(glm::dmat4(1.0), -angle, rotation_axis);  
+    glm::dmat4 rotation_inv = glm::rotate(glm::dmat4(1.0), -angle, rotation_axis);
 
     generateRotatePointsTasks(tg, sync, rotation, points);
     generateCapInitCellsTasks(tg, points, sync);

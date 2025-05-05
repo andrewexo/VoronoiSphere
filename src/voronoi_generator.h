@@ -3,14 +3,9 @@
 #include "voronoi.h"
 #include "voronoi_site.h"
 #include "voronoi_cell.h"
-#include "voronoi_tasks.h"
 #include "mp_sample_generator.h"
 #include "task_graph.h"
-#include "globals.h"
 #include <vector>
-#include <mutex>
-#include <future>
-#include <atomic>
 #include "gtest/gtest_prod.h"
 
 namespace VorGen {
