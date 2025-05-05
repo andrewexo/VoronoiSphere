@@ -58,18 +58,18 @@ struct TaskDataSitesCap
 struct TaskDataDualSort
 {
     vector<VoronoiSite>* sites;
-    promise<VoronoiSite*>* p_temps;
-    promise<bool>* p_done;
-    future<VoronoiSite*> f_temps;
+    std::unique_ptr<promise<VoronoiSite*>> p_temp;
+    std::unique_ptr<promise<bool>> p_done;
+    future<VoronoiSite*> f_temp;
     future<bool> f_done;
 };
 
 struct TaskDataBucketDualSort
 {
     vector<VoronoiSite>* sites;
-    promise<vector<vector<VoronoiSite>>*>* p_temps;
-    promise<bool>* p_done;
-    future<vector<vector<VoronoiSite>>*> f_temps;
+    std::unique_ptr<promise<vector<vector<VoronoiSite>>*>> p_temp;
+    std::unique_ptr<promise<bool>> p_done;
+    future<vector<vector<VoronoiSite>>*> f_temp;
     future<bool> f_done;
 };
 

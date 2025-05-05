@@ -316,8 +316,10 @@ TEST(VoronoiTests, SortPointsTest)
 
         TaskGraph taskGraph;
         
-        auto p_temps = new ::std::promise<VoronoiSite*>[2];
-        auto p_done = new ::std::promise<bool>[2];
+        auto p_tempsX1 = new promise<VoronoiSite*>;
+        auto p_tempsX2 = new promise<VoronoiSite*>;
+        auto p_doneX1 = new promise<bool>;
+        auto p_doneX2 = new promise<bool>;
 
         auto addTask = [&](auto task, auto && td)
         {
@@ -325,8 +327,13 @@ TEST(VoronoiTests, SortPointsTest)
             taskGraph.addTask(std::unique_ptr<Task>(task));
         };
 
-        addTask(new SortPoints1Task, TaskDataDualSort{&sites, p_temps, p_done, (p_temps+1)->get_future(), (p_done+1)->get_future()});
-        addTask(new SortPoints2Task, TaskDataDualSort{&sites, p_temps+1, p_done+1, (p_temps)->get_future(), (p_done)->get_future()});
+        addTask(new SortPoints1Task, TaskDataDualSort{&sites, std::unique_ptr<promise<VoronoiSite*>>(p_tempsX1),
+                                                              std::unique_ptr<promise<bool>>(p_doneX1),
+                                                              (p_tempsX2)->get_future(), (p_doneX2)->get_future()});
+
+        addTask(new SortPoints2Task, TaskDataDualSort{&sites, std::unique_ptr<promise<VoronoiSite*>>(p_tempsX2),
+                                                              std::unique_ptr<promise<bool>>(p_doneX2),
+                                                              (p_tempsX1)->get_future(), (p_doneX1)->get_future()});
         taskGraph.finalizeGraph();
 
         total.resume();
@@ -367,8 +374,10 @@ TEST(VoronoiTests, BucketSortTest)
 
         TaskGraph taskGraph;
         
-        auto p_temps = new ::std::promise<vector<vector<VoronoiSite>>*>[2];
-        auto p_done = new ::std::promise<bool>[2];
+        auto p_temps1 = new promise<vector<vector<VoronoiSite>>*>;
+        auto p_temps2 = new promise<vector<vector<VoronoiSite>>*>;
+        auto p_done1 = new promise<bool>;
+        auto p_done2 = new promise<bool>;
 
         auto addTask = [&](auto task, auto && td)
         {
@@ -376,8 +385,12 @@ TEST(VoronoiTests, BucketSortTest)
             taskGraph.addTask(std::unique_ptr<Task>(task));
         };
 
-        addTask(new BucketSort1Task, TaskDataBucketDualSort{&sites, p_temps, p_done, (p_temps+1)->get_future(), (p_done+1)->get_future()});
-        addTask(new BucketSort2Task, TaskDataBucketDualSort{&sites, p_temps+1, p_done+1, (p_temps)->get_future(), (p_done)->get_future()});
+        addTask(new BucketSort1Task, TaskDataBucketDualSort{&sites, std::unique_ptr<promise<vector<vector<VoronoiSite>>*>>(p_temps1),
+                                                                    std::unique_ptr<promise<bool>>(p_done1),
+                                                                    (p_temps2)->get_future(), (p_done2)->get_future()});
+        addTask(new BucketSort2Task, TaskDataBucketDualSort{&sites, std::unique_ptr<promise<vector<vector<VoronoiSite>>*>>(p_temps2),
+                                                                    std::unique_ptr<promise<bool>>(p_done2),
+                                                                    (p_temps1)->get_future(), (p_done1)->get_future()});
         taskGraph.finalizeGraph();
 
         total.resume();

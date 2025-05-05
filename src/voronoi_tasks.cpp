@@ -55,8 +55,8 @@ void SortPoints1Task::process()
     memcpy(scratch.get(), td.sites->data(), size * sizeof(VoronoiSite));
 
     // send data to other thread
-    td.p_temps->set_value(scratch.get());
-    VoronoiSite* scratch2 = td.f_temps.get();
+    td.p_temp->set_value(scratch.get());
+    VoronoiSite* scratch2 = td.f_temp.get();
 
     // merge into original array
     int a = 0; int b = 0;
@@ -71,10 +71,6 @@ void SortPoints1Task::process()
     // wait for other thread
     td.p_done->set_value(true);
     bool ready = td.f_done.get();
-
-    // cleanup temp memory
-    delete[] td.p_temps;
-    delete[] td.p_done;
 }
 
 void SortPoints2Task::process()
@@ -90,8 +86,8 @@ void SortPoints2Task::process()
     memcpy(scratch.get(), td.sites->data() + size1, size * sizeof(VoronoiSite));
 
     // send data to other thread
-    td.p_temps->set_value(scratch.get());
-    VoronoiSite* scratch1 = td.f_temps.get();
+    td.p_temp->set_value(scratch.get());
+    VoronoiSite* scratch1 = td.f_temp.get();
 
     // merge into original array
     int a = size1 - 1; int b = size - 1;
@@ -134,8 +130,8 @@ void BucketSort1Task::process()
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
 
     // send data to other thread
-    td.p_temps->set_value(&buckets);
-    vector<vector<VoronoiSite>>* buckets2 = td.f_temps.get();
+    td.p_temp->set_value(&buckets);
+    vector<vector<VoronoiSite>>* buckets2 = td.f_temp.get();
 
     // merge into original array
     size_t a = 0; size_t ai = 0;
@@ -179,10 +175,6 @@ void BucketSort1Task::process()
     // wait for other thread
     td.p_done->set_value(true);
     bool ready = td.f_done.get();
-
-    // cleanup temp memory
-    delete[] td.p_temps;
-    delete[] td.p_done;
 }
 
 void BucketSort2Task::process()
@@ -212,8 +204,8 @@ void BucketSort2Task::process()
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
 
     // send data to other thread
-    td.p_temps->set_value(&buckets);
-    vector<vector<VoronoiSite>>* buckets1 = td.f_temps.get();
+    td.p_temp->set_value(&buckets);
+    vector<vector<VoronoiSite>>* buckets1 = td.f_temp.get();
 
     // merge into original array
     size_t a = buckets1->size() - 1; int ai = buckets1->at(a).size() - 1;
