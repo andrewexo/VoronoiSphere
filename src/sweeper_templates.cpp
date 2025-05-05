@@ -1,9 +1,5 @@
 #include "voronoi.h"
-#include "globals.h"
 #include "../glm/glm.hpp"
-#include <iostream>
-#include <math.h>
-#include <algorithm>
 
 namespace VorGen {
 

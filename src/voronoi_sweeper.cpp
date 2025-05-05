@@ -1,7 +1,5 @@
 #include "voronoi.h"
-#include "globals.h"
 #include "../glm/glm.hpp"
-#include <iostream>
 
 namespace VorGen {
 
@@ -10,17 +8,11 @@ template<> double sweeplineStart<Decreasing> = M_PI;
 
 template <>
 OrderedIterator<Increasing>
-::OrderedIterator(unsigned int maxSize) : maxSize(maxSize)
-{
-	index = 0;
-}
+::OrderedIterator(unsigned int maxSize) : index(0), maxSize(maxSize) {}
 
 template <>
 OrderedIterator<Decreasing>
-::OrderedIterator(unsigned int maxSize) : maxSize(maxSize)
-{
-	index = maxSize-1;
-}
+::OrderedIterator(unsigned int maxSize) : index(maxSize-1), maxSize(maxSize) {}
 
 template <>
 unsigned int OrderedIterator<Increasing>
