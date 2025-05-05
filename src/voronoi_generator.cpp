@@ -117,12 +117,12 @@ inline void VoronoiGenerator
     SyncTask *& syncOut)
 {
     syncOut = new SyncTask;
-    tg->addTask(syncOut);
+    tg->addTask(std::unique_ptr<Task>(syncOut));
 
     auto addTask = [&](auto task, auto && td)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(task, syncOut);
     };
 
@@ -141,12 +141,12 @@ inline void VoronoiGenerator
     SyncTask *& syncInOut)
 {
     SyncTask* sync = new SyncTask;
-    tg->addTask(sync);
+    tg->addTask(std::unique_ptr<Task>(sync));
 
     auto addTask = [&](auto task, auto && td)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncInOut, task);
         tg->addDependency(task, sync);
     };
@@ -166,14 +166,14 @@ inline void VoronoiGenerator
     syncOut.syncX = new SyncTask;
     syncOut.syncY = new SyncTask;
     syncOut.syncZ = new SyncTask;
-    tg->addTask(syncOut.syncX);
-    tg->addTask(syncOut.syncY);
-    tg->addTask(syncOut.syncZ);
+    tg->addTask(std::unique_ptr<Task>(syncOut.syncX));
+    tg->addTask(std::unique_ptr<Task>(syncOut.syncY));
+    tg->addTask(std::unique_ptr<Task>(syncOut.syncZ));
 
     auto addTask = [&](auto task, auto && td, SyncTask* sync)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncIn, task);
         tg->addDependency(task, sync);
     };
@@ -194,12 +194,12 @@ inline void VoronoiGenerator
     glm::dvec3* points)
 {
     syncOut = new SyncTask;
-    tg->addTask(syncOut);
+    tg->addTask(std::unique_ptr<Task>(syncOut));
 
     auto addTask = [&](auto task, auto && td)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncOut, task);
     };
 
@@ -213,12 +213,12 @@ inline void VoronoiGenerator
     SyncTask *& syncInOut)
 {
     SyncTask* syncX = new SyncTask;
-    tg->addTask(syncX);
+    tg->addTask(std::unique_ptr<Task>(syncX));
 
     auto addTask = [&](auto task, auto && td)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncInOut, task);
         tg->addDependency(task, syncX);
     };
@@ -242,14 +242,14 @@ inline void VoronoiGenerator::generateSortPointsTasks(TaskGraph * tg, SyncXYZ & 
     SyncTask* syncX = new SyncTask;
     SyncTask* syncY = new SyncTask;
     SyncTask* syncZ = new SyncTask;
-    tg->addTask(syncX);
-    tg->addTask(syncY);
-    tg->addTask(syncZ);
+    tg->addTask(std::unique_ptr<Task>(syncX));
+    tg->addTask(std::unique_ptr<Task>(syncY));
+    tg->addTask(std::unique_ptr<Task>(syncZ));
 
     auto addTask = [&](auto task, auto && td, SyncTask* syncIn, SyncTask* syncOut)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncIn, task);
         tg->addDependency(task, syncOut);
     };
@@ -272,12 +272,12 @@ inline void VoronoiGenerator::generateCapSortPointsTasks(TaskGraph * tg, SyncTas
     auto p_done = new promise<bool>[2];
 
     SyncTask* syncX = new SyncTask;
-    tg->addTask(syncX);
+    tg->addTask(std::unique_ptr<Task>(syncX));
 
     auto addTask = [&](auto task, auto && td)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncInOut, task);
         tg->addDependency(task, syncX);
     };
@@ -295,12 +295,12 @@ inline void VoronoiGenerator
     SyncTask *& syncOut)
 {
     syncOut = new SyncTask;
-    tg->addTask(syncOut);
+    tg->addTask(std::unique_ptr<Task>(syncOut));
 
     auto addTask = [&](auto task, auto && td, SyncTask* syncIn)
     {
         task->td = std::move(td);
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncIn, task);
         tg->addDependency(task, syncOut);
     };
@@ -320,11 +320,11 @@ inline void VoronoiGenerator
 {
     SweepTask<Increasing, X>* sweepIX = new SweepTask<Increasing, X>;
     sweepIX->td = { &m_sitesX, m_gen, 1 };
-    tg->addTask(sweepIX);
+    tg->addTask(std::unique_ptr<Task>(sweepIX));
     tg->addDependency(syncInOut, sweepIX);
 
     syncInOut = new SyncTask;
-    tg->addTask(syncInOut);
+    tg->addTask(std::unique_ptr<Task>(syncInOut));
     tg->addDependency(sweepIX, syncInOut);
 }
 
@@ -334,7 +334,7 @@ inline void VoronoiGenerator::generateSortCellCornersTasks(TaskGraph * tg, SyncT
     {
         SortCellCornersTask* task = new SortCellCornersTask;
         task->td = { cell_vector, (uint)(i / (double)threads * m_size), (uint)((i + 1) / (double)threads * m_size - 1) };
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncIn, task);
     }
 }
@@ -345,7 +345,7 @@ inline void VoronoiGenerator::generateCapSortCellCornersTasks(TaskGraph * tg, Sy
     {
         SortCornersRotateTask* task = new SortCornersRotateTask;
         task->td = { cell_vector, (uint)(i / (double)threads * m_size), (uint)((i + 1) / (double)threads * m_size - 1), rotation };
-        tg->addTask(task);
+        tg->addTask(std::unique_ptr<Task>(task));
         tg->addDependency(syncIn, task);
     }
 }

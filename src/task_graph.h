@@ -8,6 +8,7 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <memory>
 
 namespace VorGen {
 
@@ -16,7 +17,7 @@ class Task
     public:
 
         Task();
-        virtual ~Task() {};
+        virtual ~Task() = default;
 
         virtual void process() = 0;
 
@@ -31,14 +32,14 @@ class SyncTask : public Task
 
         SyncTask() { isEmpty = true; m_preReqs.store(0); };
         virtual ~SyncTask() {};
-        void process() {};
+        void process() override {}
 };
 
 class TaskGraph
 {
     public:
 
-        ~TaskGraph();
+        ~TaskGraph() = default;
 
         void processTasks(int numThreads);
 
@@ -46,14 +47,14 @@ class TaskGraph
 
         void markTaskComplete(Task* t);
 
-        void addTask(Task* t);
+        void addTask(std::unique_ptr<Task> t);
         void addDependency(Task* p, Task* dependent);
         void finalizeGraph();
 
     private:
 
+        ::std::vector<std::unique_ptr<Task>> m_tasks;
         ::std::vector<Task*> m_leaves;
-        ::std::vector<Task*> m_tasks;
 
         SyncTask m_final;
         SpinLock m_lock;

@@ -3,7 +3,6 @@
 #include "voronoi_tasks.h"
 #include "voronoi_event_compare.h"
 #include "voronoi.h"
-#include "concurrent.inl"
 #include <algorithm>
 #include <cstring>
 
@@ -52,11 +51,11 @@ void SortPoints1Task::process()
     sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
 
     // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data(), size * sizeof(VoronoiSite));
+    std::unique_ptr<VoronoiSite[]> scratch = std::make_unique<VoronoiSite[]>(size);
+    memcpy(scratch.get(), td.sites->data(), size * sizeof(VoronoiSite));
 
     // send data to other thread
-    td.p_temps->set_value(scratch);
+    td.p_temps->set_value(scratch.get());
     VoronoiSite* scratch2 = td.f_temps.get();
 
     // merge into original array
@@ -74,7 +73,6 @@ void SortPoints1Task::process()
     bool ready = td.f_done.get();
 
     // cleanup temp memory
-    delete[] scratch;
     delete[] td.p_temps;
     delete[] td.p_done;
 }
@@ -88,11 +86,11 @@ void SortPoints2Task::process()
     sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
 
     // copy into scratch array
-    VoronoiSite* scratch = (VoronoiSite*)new char[size * sizeof(VoronoiSite)];
-    memcpy(scratch, td.sites->data() + size1, size * sizeof(VoronoiSite));
+    std::unique_ptr<VoronoiSite[]> scratch = std::make_unique<VoronoiSite[]>(size);
+    memcpy(scratch.get(), td.sites->data() + size1, size * sizeof(VoronoiSite));
 
     // send data to other thread
-    td.p_temps->set_value(scratch);
+    td.p_temps->set_value(scratch.get());
     VoronoiSite* scratch1 = td.f_temps.get();
 
     // merge into original array
@@ -108,9 +106,6 @@ void SortPoints2Task::process()
     // wait for other thread
     td.p_done->set_value(true);
     bool ready = td.f_done.get();
-
-    // delete scratch
-    delete[] scratch;
 }
 
 void BucketSort1Task::process()
@@ -137,7 +132,6 @@ void BucketSort1Task::process()
     // Sort each bucket
     for (unsigned int i = 0; i < num_buckets; i++)
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
-    //concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);
@@ -216,7 +210,6 @@ void BucketSort2Task::process()
     // Sort each bucket
     for (unsigned int i = 0; i < num_buckets; i++)
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
-    //concurrent([&](size_t i) { sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare); }, 0, num_buckets, 6);
 
     // send data to other thread
     td.p_temps->set_value(&buckets);

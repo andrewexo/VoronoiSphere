@@ -3,37 +3,24 @@
 
 namespace VorGen {
 
-TaskGraph::~TaskGraph()
-{
-    for (unsigned int i = 0; i < m_tasks.size(); i++)
-    {
-        delete m_tasks[i];
-    }
-}
 
 void TaskGraph::processTasks(int numThreads)
 {
-    // create threads
-    ::std::thread* m_threads = new ::std::thread[numThreads-1];
-    for (int i = 0; i < numThreads - 1; i++)
+    ::std::vector<::std::thread> threads;
+    for (int i = 0; i < numThreads; i++)
     {
-        m_threads[i] = ::std::thread(processTasksThread, this);
+        threads.push_back(::std::thread(processTasksThread, this));
     }
-
     processTasksThread(this);
-
-    // destroy threads
-    for (int i = 0; i < numThreads - 1; i++)
+    for (auto& thread : threads)
     {
-        m_threads[i].join();
+        thread.join();
     }
-
-    delete [] m_threads;
 }
 
 void TaskGraph::processTasksThread(TaskGraph* tg)
 {
-    while (1)
+    while (true)
     {
         tg->m_lock.lock();
         
@@ -60,26 +47,26 @@ void TaskGraph::processTasksThread(TaskGraph* tg)
     }
 }
 
-void TaskGraph::markTaskComplete(Task * t)
+void TaskGraph::markTaskComplete(Task* t)
 {
-    for (unsigned int i = 0; i < t->m_dependents.size(); i++)
+    for (auto dependent : t->m_dependents)
     {
-        if ( --(t->m_dependents[i]->m_preReqs) == 0)
+        if ( --(dependent->m_preReqs) == 0)
         {
-            if (t->m_dependents[i]->isEmpty)
-                markTaskComplete(t->m_dependents[i]);
+            if (dependent->isEmpty)
+                markTaskComplete(dependent);
             else
-                m_leaves.push_back(t->m_dependents[i]);
+                m_leaves.push_back(dependent);
         }
     }
 }
 
-void TaskGraph::addTask(Task * t)
+void TaskGraph::addTask(std::unique_ptr<Task> t)
 {
-    m_tasks.push_back(t);
+    m_tasks.push_back(std::move(t));
 }
 
-void TaskGraph::addDependency(Task * p, Task * dependent)
+void TaskGraph::addDependency(Task* p, Task* dependent)
 {
     p->m_dependents.push_back(dependent);
     dependent->m_preReqs++;
@@ -87,25 +74,20 @@ void TaskGraph::addDependency(Task * p, Task * dependent)
 
 void TaskGraph::finalizeGraph()
 {
-    for (unsigned int i = 0; i < m_tasks.size(); i++)
+    for (auto& task : m_tasks)
     {
-        Task* t = m_tasks[i];
-        if (t->m_preReqs == 0)
+        if (task->m_preReqs == 0)
         {
-            m_leaves.push_back(t);
+            m_leaves.push_back(task.get());
         }
-        if (t->m_dependents.empty())
+        if (task->m_dependents.empty())
         {
-            t->m_dependents.push_back(&m_final);
+            task->m_dependents.push_back(&m_final);
             m_final.m_preReqs++;
         }
     }
 }
 
-Task::Task()
-{
-    m_preReqs.store(0);
-    isEmpty = false;
-}
+Task::Task() : m_preReqs(0), isEmpty(false) {}
 
 }

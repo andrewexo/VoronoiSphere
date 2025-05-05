@@ -319,16 +319,14 @@ TEST(VoronoiTests, SortPointsTest)
         auto p_temps = new ::std::promise<VoronoiSite*>[2];
         auto p_done = new ::std::promise<bool>[2];
 
-        auto addTask = [&](auto task, std::vector<VoronoiSite>& sites, 
-                        auto p_temps, auto p_done, 
-                        auto p_temps2, auto p_done2)
+        auto addTask = [&](auto task, auto && td)
         {
-            task->td = { &sites, p_temps, p_done, p_temps2->get_future(), p_done2->get_future() };
-            taskGraph.addTask(task);
+            task->td = std::move(td);
+            taskGraph.addTask(std::unique_ptr<Task>(task));
         };
 
-        addTask(new SortPoints1Task, sites, p_temps, p_done, p_temps+1, p_done+1);
-        addTask(new SortPoints2Task, sites, p_temps+1, p_done+1, p_temps, p_done);
+        addTask(new SortPoints1Task, TaskDataDualSort{&sites, p_temps, p_done, (p_temps+1)->get_future(), (p_done+1)->get_future()});
+        addTask(new SortPoints2Task, TaskDataDualSort{&sites, p_temps+1, p_done+1, (p_temps)->get_future(), (p_done)->get_future()});
         taskGraph.finalizeGraph();
 
         total.resume();
@@ -372,16 +370,14 @@ TEST(VoronoiTests, BucketSortTest)
         auto p_temps = new ::std::promise<vector<vector<VoronoiSite>>*>[2];
         auto p_done = new ::std::promise<bool>[2];
 
-        auto addTask = [&](auto task, std::vector<VoronoiSite>& sites, 
-                        auto p_temps, auto p_done, 
-                        auto p_temps2, auto p_done2)
+        auto addTask = [&](auto task, auto && td)
         {
-            task->td = { &sites, p_temps, p_done, p_temps2->get_future(), p_done2->get_future() };
-            taskGraph.addTask(task);
+            task->td = std::move(td);
+            taskGraph.addTask(std::unique_ptr<Task>(task));
         };
 
-        addTask(new BucketSort1Task, sites, p_temps, p_done, p_temps+1, p_done+1);
-        addTask(new BucketSort2Task, sites, p_temps+1, p_done+1, p_temps, p_done);
+        addTask(new BucketSort1Task, TaskDataBucketDualSort{&sites, p_temps, p_done, (p_temps+1)->get_future(), (p_done+1)->get_future()});
+        addTask(new BucketSort2Task, TaskDataBucketDualSort{&sites, p_temps+1, p_done+1, (p_temps)->get_future(), (p_done)->get_future()});
         taskGraph.finalizeGraph();
 
         total.resume();
