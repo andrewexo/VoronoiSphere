@@ -10,19 +10,19 @@ namespace VorGen {
 
 void RotatePointsTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
         td.points[i] = (td.rotation * glm::dvec4(td.points[i], 1.0)).xyz();
 }
 
 void InitCellsTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
         new(td.cells + i) VoronoiCell(td.points[i]);
 }
 
 void InitCellsAndResizeSitesTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
         new(td.cells + i) VoronoiCell(td.points[i]);
 
     td.sites->resize(td.size);
@@ -31,7 +31,7 @@ void InitCellsAndResizeSitesTask::process()
 template<Axis A>
 void InitSitesTask<A>::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
     {
         VoronoiSite site{(td.cells)[i].position, td.cells + i};
         computePolarAndAzimuth<A>(site);
@@ -46,7 +46,7 @@ template class InitSitesTask<Z>;
 void SortPoints1Task::process()
 {
     // sort array half
-    unsigned int size = (unsigned int)td.sites->size() / 2;
+    size_t size = (size_t)td.sites->size() / 2;
     VoronoiSiteCompare voronoiSiteCompare;
     sort(td.sites->begin(), td.sites->begin() + size, voronoiSiteCompare);
 
@@ -60,7 +60,7 @@ void SortPoints1Task::process()
 
     // merge into original array
     int a = 0; int b = 0;
-    for (unsigned int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         if (voronoiSiteCompare(scratch[a], scratch2[b]))
             (*td.sites)[i] = scratch[a++];
@@ -76,8 +76,8 @@ void SortPoints1Task::process()
 void SortPoints2Task::process()
 {
     // sort array half
-    unsigned int size1 = (unsigned int)td.sites->size() / 2;
-    unsigned int size = (unsigned int)td.sites->size() - size1;
+    size_t size1 = (size_t)td.sites->size() / 2;
+    size_t size = (size_t)td.sites->size() - size1;
     VoronoiSiteCompare voronoiSiteCompare;
     sort(td.sites->begin() + size1, td.sites->end(), voronoiSiteCompare);
 
@@ -91,7 +91,7 @@ void SortPoints2Task::process()
 
     // merge into original array
     int a = size1 - 1; int b = size - 1;
-    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
+    for (size_t i = (size_t)td.sites->size() - 1; i >= size1; i--)
     {
         if (a < 0 || voronoiSiteCompare(scratch1[a], scratch[b]))
             (*td.sites)[i] = scratch[b--];
@@ -107,7 +107,7 @@ void SortPoints2Task::process()
 void BucketSort1Task::process()
 {
     // sort array half
-    unsigned int size = (unsigned int)td.sites->size() / 2;
+    size_t size = (size_t)td.sites->size() / 2;
     VoronoiSiteCompare voronoiSiteCompare;
     
     // Make buckets
@@ -115,18 +115,18 @@ void BucketSort1Task::process()
     size_t num_buckets = (size + bucket_size - 1) / bucket_size;
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
-    for (unsigned int i = 0; i < num_buckets; i++)
+    for (size_t i = 0; i < num_buckets; i++)
         buckets[i].reserve(bucket_size * 1.2);
 
     // Distribute sites into buckets
-    for (unsigned int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         size_t bucket_index = ::std::min((size_t)(((*td.sites)[i].m_polar / (M_PI/2.0)) * num_buckets), num_buckets-1);
         buckets[bucket_index].push_back((*td.sites)[i]);
     }
 
     // Sort each bucket
-    for (unsigned int i = 0; i < num_buckets; i++)
+    for (size_t i = 0; i < num_buckets; i++)
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
 
     // send data to other thread
@@ -146,7 +146,7 @@ void BucketSort1Task::process()
         bi = 0;
         b++;
     }
-    for (unsigned int i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
     {
         VoronoiSite* site1 = &buckets[a][ai];
         VoronoiSite* site2 = &((*buckets2)[b][bi]);
@@ -180,8 +180,8 @@ void BucketSort1Task::process()
 void BucketSort2Task::process()
 {
     // sort array half
-    unsigned int size1 = (unsigned int)td.sites->size() / 2;
-    unsigned int size = (unsigned int)td.sites->size() - size1;
+    size_t size1 = (size_t)td.sites->size() / 2;
+    size_t size = (size_t)td.sites->size() - size1;
     VoronoiSiteCompare voronoiSiteCompare;
     
     // Make buckets
@@ -189,18 +189,18 @@ void BucketSort2Task::process()
     size_t num_buckets = (size + bucket_size - 1) / bucket_size;
     vector<vector<VoronoiSite>> buckets;
     buckets.resize(num_buckets);
-    for (unsigned int i = 0; i < num_buckets; i++)
+    for (size_t i = 0; i < num_buckets; i++)
         buckets[i].reserve(bucket_size * 1.2);
 
     // Distribute sites into buckets
-    for (unsigned int i = size1; i < td.sites->size(); i++)
+    for (size_t i = size1; i < td.sites->size(); i++)
     {
         size_t bucket_index = ::std::min((size_t)(((*td.sites)[i].m_polar / (M_PI/2.0)) * num_buckets), num_buckets-1);
         buckets[bucket_index].push_back((*td.sites)[i]);
     }
 
     // Sort each bucket
-    for (unsigned int i = 0; i < num_buckets; i++)
+    for (size_t i = 0; i < num_buckets; i++)
         sort(buckets[i].begin(), buckets[i].end(), voronoiSiteCompare);
 
     // send data to other thread
@@ -220,7 +220,7 @@ void BucketSort2Task::process()
         b--;
         bi = buckets.at(b).size() - 1;
     }
-    for (unsigned int i = (unsigned int)td.sites->size() - 1; i >= size1; i--)
+    for (size_t i = (size_t)td.sites->size() - 1; i >= size1; i--)
     {
         VoronoiSite* site1 = &((*buckets1)[a][ai]);
         VoronoiSite* site2 = &buckets[b][bi];
@@ -282,7 +282,7 @@ template class SweepTask<Decreasing, Z>;
 
 void SortCellCornersTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
     {
         if (td.cell_vector[i].corners.size() == 0)
             continue;
@@ -295,10 +295,10 @@ void SortCellCornersTask::process()
 
 void SortCornersRotateTask::process()
 {
-    for (unsigned int i = td.start; i <= td.end; i++)
+    for (size_t i = td.start; i <= td.end; i++)
     {
         (td.cell_vector[i]).sortCorners();
-        for (unsigned int j = 0; j < td.cell_vector[i].corners.size(); j++)
+        for (size_t j = 0; j < td.cell_vector[i].corners.size(); j++)
         {
             td.cell_vector[i].corners[j] = (td.rotation * glm::dvec4(td.cell_vector[i].corners[j], 1.0)).xyz();
         }

@@ -2,6 +2,6 @@
 
 namespace VorGen {
 
-::std::atomic<unsigned int> completedCells {0};
+::std::atomic<std::size_t> completedCells {0};
 
 }

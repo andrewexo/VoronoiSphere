@@ -11,7 +11,7 @@ class SampleGenerator
     public:
 
         SampleGenerator();
-        SampleGenerator(unsigned int seed);
+        SampleGenerator(size_t seed);
 
         glm::dvec3* getJitteredSamples(int n);
         glm::dvec3* getRandomSamples(int n);
@@ -21,7 +21,7 @@ class SampleGenerator
 
     private:
 
-        unsigned int seed;
+        size_t seed;
         ::std::uniform_real_distribution<double> unif;
         ::std::default_random_engine re;
 

@@ -61,7 +61,7 @@ void VoronoiCell::sortCorners()
 
     glm::dvec3 pivnorm = glm::normalize(corners[0] - position);
 
-    for (unsigned int i = 0; i < pairs.size(); i++)
+    for (size_t i = 0; i < pairs.size(); i++)
     {
         glm::dvec3 pnormA = glm::normalize(corners[i] - position);
         double x = (double)glm::dot(glm::cross(pivnorm, pnormA), position);
@@ -77,7 +77,7 @@ void VoronoiCell::sortCorners()
         }
     );
 
-    for (unsigned int i = 0; i < corners.size(); i++)
+    for (size_t i = 0; i < corners.size(); i++)
     {
         corners[i] = pairs[i].vec;
     }

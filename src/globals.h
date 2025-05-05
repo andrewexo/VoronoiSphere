@@ -5,7 +5,7 @@
 
 namespace VorGen {
 
-extern ::std::atomic<unsigned int> completedCells;
+extern ::std::atomic<std::size_t> completedCells;
 enum Order { Increasing, Decreasing };
 
 }

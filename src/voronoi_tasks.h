@@ -16,8 +16,8 @@ using ::std::future;
 struct TaskDataRotatePoints
 {
     glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
     glm::dmat4 rotation;
 };
 
@@ -25,33 +25,33 @@ struct TaskDataCells
 {
     VoronoiCell* cells;
     glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
 };
 
 struct TaskDataCellsResize
 {
     VoronoiCell* cells;
     glm::dvec3* points;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
     vector<VoronoiSite>* sites;
-    unsigned int size;
+    size_t size;
 };
 
 struct TaskDataSites
 {
     VoronoiCell* cells;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
     vector<VoronoiSite>* sites;
 };
 
 struct TaskDataSitesCap
 {
     VoronoiCell* cells;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
     vector<VoronoiSite>* sites;
 };
 
@@ -76,22 +76,22 @@ struct TaskDataBucketDualSort
 struct TaskDataSweep
 {
     vector<VoronoiSite>* sites;
-    unsigned int gen;
+    size_t gen;
     uint8_t taskId;
 };
 
 struct TaskDataSortCorners
 {
     VoronoiCell* cell_vector;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
 };
 
 struct TaskDataRotateCorners
 {
     VoronoiCell* cell_vector;
-    unsigned int start;
-    unsigned int end;
+    size_t start;
+    size_t end;
     glm::dmat4 rotation;
 };
 

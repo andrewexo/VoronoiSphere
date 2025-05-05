@@ -8,21 +8,21 @@ template<> double sweeplineStart<Decreasing> = M_PI;
 
 template <>
 OrderedIterator<Increasing>
-::OrderedIterator(unsigned int maxSize) : index(0), maxSize(maxSize) {}
+::OrderedIterator(size_t maxSize) : index(0), maxSize(maxSize) {}
 
 template <>
 OrderedIterator<Decreasing>
-::OrderedIterator(unsigned int maxSize) : index(maxSize-1), maxSize(maxSize) {}
+::OrderedIterator(size_t maxSize) : index(maxSize-1), maxSize(maxSize) {}
 
 template <>
-unsigned int OrderedIterator<Increasing>
+size_t OrderedIterator<Increasing>
 ::operator++(int)
 {
 	return index++;
 }
 
 template <>
-unsigned int OrderedIterator<Decreasing>
+size_t OrderedIterator<Decreasing>
 ::operator++(int)
 {
 	return index--;
@@ -45,7 +45,7 @@ inline bool OrderedIterator<O>
 template <Order O, Axis A>
 VoronoiSweeper<O, A>::VoronoiSweeper(
 	::std::vector<VoronoiSite>* sites, 
-	unsigned int gen, 
+	size_t gen, 
 	uint8_t threadId
 	) : m_sites(sites), 
 	m_next(m_sites->size()),
@@ -55,7 +55,7 @@ VoronoiSweeper<O, A>::VoronoiSweeper(
 	m_sweeplineLarge = sweeplineStart<O>;
 	m_sweeplineSmall = 0.0;
 
-	unsigned int count = ::std::min((int)sites->size(), (int)(m_gen * 2));
+	size_t count = ::std::min((int)sites->size(), (int)(m_gen * 2));
 	auto size = (2 * count - 2) * sizeof(MemBlock<O>);
 	m_nextBlock = m_memBlocks = (MemBlock<O>*)malloc( size );
 	block = 0;

@@ -18,16 +18,16 @@ const double sweeplineStart;
 template <Order O>
 class OrderedIterator 
 {
-  unsigned int index;
-  const unsigned int maxSize;
+  size_t index;
+  const size_t maxSize;
 
 
   public:
-    OrderedIterator(unsigned int maxSize);
-    unsigned int operator++(int);
+    OrderedIterator(size_t maxSize);
+    size_t operator++(int);
     inline bool isInRange();
     inline bool isAtEnd();
-    inline unsigned int getIndex() { return index; };
+    inline size_t getIndex() { return index; };
 };
 
 template <Order O, Axis A>
@@ -37,7 +37,7 @@ class VoronoiSweeper
 
     VoronoiSweeper(
       ::std::vector<VoronoiSite>* sites, 
-      unsigned int gen, 
+      size_t gen, 
       uint8_t threadId);
     ~VoronoiSweeper();
 
@@ -54,7 +54,7 @@ class VoronoiSweeper
     ::std::vector<VoronoiSite>* m_sites;
     OrderedIterator<O> m_next;
 
-    unsigned int m_gen;
+    size_t m_gen;
     uint8_t m_threadId;
 
     VoronoiSiteEventCompare<O> voronoi_site_event_comp;

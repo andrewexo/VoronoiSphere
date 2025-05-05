@@ -12,13 +12,13 @@ namespace VorGen {
 
 SampleGenerator::SampleGenerator()
 {
-    seed = (unsigned int) time(NULL);
+    seed = (size_t) time(NULL);
     //::std::cout << "seed = " << seed << "\n";
 
     unif = ::std::uniform_real_distribution<double>(0.0,1.0);
 }
 
-SampleGenerator::SampleGenerator(unsigned int seed) : seed(seed)
+SampleGenerator::SampleGenerator(size_t seed) : seed(seed)
 {
     unif = ::std::uniform_real_distribution<double>(0.0,1.0);
 }
