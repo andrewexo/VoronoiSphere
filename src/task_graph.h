@@ -1,10 +1,13 @@
-#ifndef TASK_GRAPH_H
-#define TASK_GRAPH_H
+#pragma once
 
 #include "spin_lock.h"
+#include "globals.h"
 #include <atomic>
 #include <vector>
-#include <iostream>
+#include <queue>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 namespace VorGen {
 
@@ -57,5 +60,3 @@ class TaskGraph
 };
 
 }
-
-#endif

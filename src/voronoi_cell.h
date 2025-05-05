@@ -1,12 +1,11 @@
-#ifndef VORONOI_CELL_H
-#define VORONOI_CELL_H
+#pragma once
 
 #define _USE_MATH_DEFINES
 
 #include "../glm/glm.hpp"
+#include "globals.h"
 #include <vector>
 #include <atomic>
-#include <cmath>
 
 namespace VorGen {
 
@@ -30,5 +29,3 @@ class VoronoiCell
 };
 
 }
-
-#endif

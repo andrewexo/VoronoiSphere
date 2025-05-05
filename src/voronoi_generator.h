@@ -1,11 +1,16 @@
-#ifndef VORONOI_GENERATOR_H
-#define VORONOI_GENERATOR_H
+#pragma once
 
-#include "mp_sample_generator.h"
+#include "voronoi.h"
+#include "voronoi_site.h"
 #include "voronoi_cell.h"
-#include "voronoi_event_compare.h"
+#include "voronoi_tasks.h"
+#include "mp_sample_generator.h"
 #include "task_graph.h"
+#include "globals.h"
 #include <vector>
+#include <mutex>
+#include <future>
+#include <atomic>
 #include "gtest/gtest_prod.h"
 
 namespace VorGen {
@@ -80,5 +85,3 @@ class VoronoiGenerator
 };
 
 }
-
-#endif

@@ -1,9 +1,10 @@
-#ifndef MEMBLOCK_H
-#define MEMBLOCK_H
+#pragma once
 
 #include "beachline.h"
 #include "voronoi_event.h"
 #include "platform.h"
+#include "globals.h"
+#include <cstring>
 
 namespace VorGen {
 
@@ -54,5 +55,3 @@ inline SkipNode<O>* getPointerFromIndex(SkipNode<O>* skipNode, int i)
 #define NODE_2(pointer, member) getPointerFromIndex(pointer, getPointerFromIndex(pointer, pointer->member)->member)
 
 }
-
-#endif

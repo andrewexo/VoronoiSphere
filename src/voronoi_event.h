@@ -1,12 +1,11 @@
-#ifndef VORONOI_EVENT_H
-#define VORONOI_EVENT_H
+#pragma once
 
 #define _USE_MATH_DEFINES
 
-#include <cmath>
-#include <list>
 #include "globals.h"
 #include "../glm/glm.hpp"
+#include "voronoi_site.h"
+#include "beachline.h"
 
 namespace VorGen {
 
@@ -25,5 +24,3 @@ class CircleEvent
 };
 
 }
-
-#endif

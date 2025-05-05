@@ -1,5 +1,4 @@
-#ifndef VORONOI_EVENT_COMPARE_H
-#define VORONOI_EVENT_COMPARE_H
+#pragma once
 
 #include "globals.h"
 #include "voronoi_event.h"
@@ -77,5 +76,3 @@ template <> struct VoronoiSiteEventCompare<Decreasing>
 };
 
 }
-
-#endif

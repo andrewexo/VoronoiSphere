@@ -1,8 +1,9 @@
-#ifndef PRIQUEUE_H
-#define PRIQUEUE_H
+#pragma once
 
 #include "voronoi_event.h"
 #include "voronoi_event_compare.h"
+#include "globals.h"
+#include <vector>
 #include <random>
 #include "gtest/gtest_prod.h"
 
@@ -68,5 +69,3 @@ class PriQueue
 };
 
 }
-
-#endif

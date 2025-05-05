@@ -1,5 +1,4 @@
-#ifndef BEACHLINE_H
-#define BEACHLINE_H
+#pragma once
 
 #include "globals.h"
 #include "voronoi_event.h"
@@ -90,5 +89,3 @@ class BeachLine
 };
 
 }
-
-#endif

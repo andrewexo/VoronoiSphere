@@ -1,5 +1,4 @@
-#ifndef VORONOI_TASKS_H
-#define VORONOI_TASKS_H
+#pragma once
 
 #include "voronoi_generator.h"
 #include "voronoi_site.h"
@@ -176,5 +175,3 @@ class SortCornersRotateTask : public Task
 };
 
 }
-
-#endif

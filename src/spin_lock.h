@@ -1,6 +1,7 @@
-#ifndef SPIN_LOCK_H
-#define SPIN_LOCK_H
+#pragma once
 
+#include "platform.h"
+#include "globals.h"
 #include <atomic>
 
 namespace VorGen {
@@ -18,5 +19,3 @@ class SpinLock
 };
 
 }
-
-#endif

@@ -1,5 +1,8 @@
-#ifndef PLATFORM_H
-#define PLATFORM_H
+#pragma once
+
+#include "globals.h"
+
+namespace VorGen {
 
 #if defined __GNUG__
     #define OFFSETOF __builtin_offsetof
@@ -11,4 +14,4 @@
     #error 'unsupported compiler'
 #endif
 
-#endif
+}

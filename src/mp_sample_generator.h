@@ -1,5 +1,4 @@
-#ifndef MP_SAMPLE_GENERATOR_H
-#define MP_SAMPLE_GENERATOR_H
+#pragma once
 
 #include "../glm/glm.hpp"
 #include "globals.h"
@@ -29,5 +28,3 @@ class SampleGenerator
 };
 
 }
-
-#endif

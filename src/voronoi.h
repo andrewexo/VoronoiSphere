@@ -1,8 +1,6 @@
-#ifndef VORONOI_H
-#define VORONOI_H
+#pragma once
 
 #include <vector>
-#include <cmath>
 #include "../glm/glm.hpp"
 #include "voronoi_event.h"
 #include "voronoi_site.h"
@@ -95,5 +93,3 @@ class VoronoiSweeper
 };
 
 }
-
-#endif

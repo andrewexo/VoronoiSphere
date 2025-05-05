@@ -1,5 +1,4 @@
-#ifndef VORONOI_SITE_H
-#define VORONOI_SITE_H
+#pragma once
 
 #include "../glm/glm.hpp"
 #include "voronoi_cell.h"
@@ -31,5 +30,3 @@ template<Axis A>
 void computePolarAndAzimuth(VoronoiSite& site);
 
 }
-
-#endif
