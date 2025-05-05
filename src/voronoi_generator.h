@@ -19,7 +19,7 @@ class VoronoiGenerator
     public:
 
         VoronoiGenerator();
-        VoronoiGenerator(uint seed);
+        VoronoiGenerator(size_t seed);
         ~VoronoiGenerator();
 
         glm::dvec3* genRandomInput(int count);
@@ -32,12 +32,12 @@ class VoronoiGenerator
         VoronoiCell* cell_vector;
 
         // max number of cells to generate
-        uint m_size;
+        size_t m_size;
 
         // number of cells to generate
         // use if you want part of the sphere 
         // to be generated
-		uint m_gen;
+		size_t m_gen;
 
         vector<VoronoiSite> m_sitesX;
         vector<VoronoiSite> m_sitesY;
@@ -77,6 +77,7 @@ class VoronoiGenerator
         FRIEND_TEST(VoronoiTests, TestCapVerifyResult);
         FRIEND_TEST(VoronoiTests, TestBeachLine);
         FRIEND_TEST(VoronoiTests, TestCircumcenter);
+        FRIEND_TEST(VoronoiTests, TestCapDeterminism);
 };
 
 }

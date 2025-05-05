@@ -33,9 +33,8 @@ void InitSitesTask<A>::process()
 {
     for (size_t i = td.start; i <= td.end; i++)
     {
-        VoronoiSite site{(td.cells)[i].position, td.cells + i};
-        computePolarAndAzimuth<A>(site);
-        (*(td.sites))[i] = site;
+        (*(td.sites))[i] = {(td.cells)[i].position, td.cells + i};
+        computePolarAndAzimuth<A>((*(td.sites))[i]);
     }
 }
 

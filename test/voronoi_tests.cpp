@@ -11,6 +11,7 @@
 #include <future>
 #include "../src/task_graph.h"
 #include "../src/voronoi_tasks.h"
+#include "../glm/gtc/matrix_transform.hpp"
 
 #define _USE_MATH_DEFINES
 #include <math.h>
@@ -297,6 +298,53 @@ TEST(VoronoiTests, TestCapVerifyResult)
     }
 }
 
+TEST(VoronoiTests, TestCapDeterminism)
+{
+    VoronoiGenerator vg1;
+    VoronoiGenerator vg2;
+    size_t count = 500000;
+    glm::dvec3* points = vg1.genRandomInput(count);
+
+    ::std::vector<glm::dvec3> cap_points;
+    glm::dvec3 nPos = glm::normalize(glm::dvec3(0,0,-1));
+    for (uint i = 0; i < count; i++)
+    {
+        if (glm::dot(points[i], nPos) > 0.99)
+            cap_points.push_back(points[i]);
+    }
+
+    VoronoiCell* cells1 = vg1.generateCap(glm::dvec3(0,0,-1), cap_points.data(), cap_points.size());
+    VoronoiCell* cells2 = vg2.generateCap(glm::dvec3(0,0,-1), cap_points.data(), cap_points.size());
+
+    EXPECT_EQ(vg1.m_size, vg2.m_size);
+    uint error_count = 0;
+    for (uint i = 0; i < vg1.m_size; i++)
+    {
+        if (vg1.m_sitesX[i].m_position.x != vg2.m_sitesX[i].m_position.x)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_position.y != vg2.m_sitesX[i].m_position.y)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_position.z != vg2.m_sitesX[i].m_position.z)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_polar !=      vg2.m_sitesX[i].m_polar)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_azimuth !=    vg2.m_sitesX[i].m_azimuth)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_polSin !=     vg2.m_sitesX[i].m_polSin)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_polCos !=     vg2.m_sitesX[i].m_polCos)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_aziSinPS !=   vg2.m_sitesX[i].m_aziSinPS)
+        { error_count++; std::cout << i << std::endl; continue; }
+        if (vg1.m_sitesX[i].m_aziCosPS !=   vg2.m_sitesX[i].m_aziCosPS)
+        { error_count++; std::cout << i << std::endl; continue; }
+    }
+    std::cout << "error count: " << error_count << std::endl;
+    EXPECT_EQ((uint)0, error_count);
+    delete[] cells1;
+    delete[] cells2;
+    delete[] points;
+}
 TEST(VoronoiTests, SortPointsTest)
 {
     ::boost::timer::cpu_timer total;
@@ -411,5 +459,66 @@ TEST(VoronoiTests, BucketSortTest)
     }
     ::std::cout << (total.elapsed().wall / (runs * 1000000.f)) << "ms\n";
 }
+
+TEST(VoronoiTests, RotatePointsTaskDeterminism)
+{
+    const int runs = 5;
+    const size_t count = 1'000'000;
+    
+    for (int run = 0; run < runs; run++)
+    {
+        // Create consistent set of points for each run
+        std::vector<::glm::dvec3> points1(count);
+        std::vector<::glm::dvec3> points2(count);
+        
+        // Initialize with same random points
+        srand(42); // Fixed seed for determinism
+        for (size_t i = 0; i < count; i++)
+        {
+            ::glm::dvec3 p = ::glm::dvec3(
+                static_cast<double>(rand()) / RAND_MAX,
+                static_cast<double>(rand()) / RAND_MAX,
+                static_cast<double>(rand()) / RAND_MAX
+            );
+            p = ::glm::normalize(p);
+            points1[i] = p;
+            points2[i] = p;
+        }
+        
+        // Create rotation matrix
+        ::glm::dvec3 origin(0.5, 0.7, 0.3);
+        origin = ::glm::normalize(origin);
+        ::glm::dvec3 x_axis(1, 0, 0);
+        ::glm::dvec3 rotation_axis = ::glm::cross(x_axis, origin);
+        double angle = ::glm::acos(::glm::dot(x_axis, origin));
+        ::glm::dmat4 rotation = ::glm::rotate(::glm::dmat4(1.0), angle, rotation_axis);
+        
+        auto RotatePoints = [&](std::vector<::glm::dvec3>& points) {
+            RotatePointsTask* task = new RotatePointsTask;
+            task->td = TaskDataRotatePoints{points.data(), 0, count - 1, rotation};
+            task->process();
+            delete task;
+        };
+        
+        RotatePoints(points1);
+        RotatePoints(points2);
+        
+        // Verify that both rotations produced identical results
+        bool identical = true;
+        for (size_t i = 0; i < count; i++)
+        {
+            if (::glm::distance(points1[i], points2[i]) != 0.0)
+            {
+                identical = false;
+                std::cout << "Difference at index " << i << ": " 
+                          << ::glm::distance(points1[i], points2[i]) << std::endl;
+                break;
+            }
+        }
+        
+        EXPECT_TRUE(identical) << "RotatePointsTask is not deterministic";
+    }
+}
+
 
 }
