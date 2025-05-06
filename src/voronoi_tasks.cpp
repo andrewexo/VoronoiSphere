@@ -303,8 +303,9 @@ void SortCornersRotateTask::process()
         }
 #ifdef CENTROID
         (td.cell_vector[i]).computeCentroid();
-#endif
+#else
         td.cell_vector[i].position = (td.rotation * glm::dvec4(td.cell_vector[i].position, 1.0)).xyz();
+#endif
     }
 }
 
