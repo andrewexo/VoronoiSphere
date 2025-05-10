@@ -51,6 +51,8 @@ class TaskGraph
         void addDependency(Task* p, Task* dependent);
         void finalizeGraph();
 
+        void printGraph();
+
     private:
 
         ::std::vector<std::unique_ptr<Task>> m_tasks;

@@ -1,5 +1,8 @@
 #include "task_graph.h"
 #include <thread>
+#include <iostream>
+#include <algorithm>
+#include <unordered_map>
 
 namespace VorGen {
 
@@ -84,6 +87,68 @@ void TaskGraph::finalizeGraph()
         {
             task->m_dependents.push_back(&m_final);
             m_final.m_preReqs++;
+        }
+    }
+}
+
+void TaskGraph::printGraph()
+{
+    // Create a copy of the task graph for traversal
+    std::vector<Task*> tasks;
+    std::vector<uint8_t> inDegree;
+    
+    // Initialize with all tasks
+    for (auto& task : m_tasks)
+    {
+        tasks.push_back(task.get());
+        inDegree.push_back(task->m_preReqs.load());
+    }
+    
+    // Topological sort using Kahn's algorithm
+    std::queue<Task*> queue;
+    
+    // Add all nodes with no incoming edges to the queue
+    for (size_t i = 0; i < tasks.size(); i++)
+    {
+        if (inDegree[i] == 0)
+            queue.push(tasks[i]);
+    }
+    
+    // Map to track distance from start for each task
+    std::unordered_map<Task*, size_t> distanceFromStart;
+    for (Task* task : tasks)
+    {
+        if (task->m_preReqs == 0)
+            distanceFromStart[task] = 0;
+    }
+    
+    std::cout << "Task Graph (topological order):" << std::endl;
+    while (!queue.empty())
+    {
+        Task* current = queue.front();
+        queue.pop();
+        
+        std::cout << std::string(distanceFromStart[current], ' ') << typeid(*current).name() << std::endl;
+        
+        // Process all neighbors
+        for (Task* dependent : current->m_dependents)
+        {
+            // Skip the final sync task
+            if (dependent == &m_final)
+                continue;
+                
+            // Find the dependent in our task list
+            auto it = std::find(tasks.begin(), tasks.end(), dependent);
+            if (it != tasks.end())
+            {
+                size_t index = it - tasks.begin();
+                inDegree[index]--;
+                
+                if (inDegree[index] == 0) {
+                    distanceFromStart[dependent] = distanceFromStart[current] + 1;
+                    queue.push(dependent);
+                }
+            }
         }
     }
 }

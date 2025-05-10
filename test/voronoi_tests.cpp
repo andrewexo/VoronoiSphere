@@ -206,11 +206,11 @@ TEST(VoronoiTests, TestPerformance)
 TEST(VoronoiTests, TestCapPerformance)
 {
     ::boost::timer::cpu_timer total;
-    int runs = 16;
+    int runs = 10;
     for (int w = 0; w < runs; w++)
     {
         VoronoiGenerator vg;
-        size_t count = 100000;
+        size_t count = 2'000'000;
         glm::dvec3* points = vg.genRandomInput(count);
         glm::dvec3* points_in_radius = new glm::dvec3[count];
         glm::dvec3 origin = glm::normalize(glm::dvec3(1.0, 1.0, 1.0));
@@ -219,7 +219,7 @@ TEST(VoronoiTests, TestCapPerformance)
         size_t j = 0;
         for (size_t i = 0; i < count; i++)
         {
-            if (glm::dot(points[i], origin) >= 0.9)
+            if (glm::dot(points[i], origin) >= 0.977)
                 points_in_radius[j++] = points[i];
         }
 
@@ -348,7 +348,7 @@ TEST(VoronoiTests, TestCapDeterminism)
 TEST(VoronoiTests, SortPointsTest)
 {
     ::boost::timer::cpu_timer total;
-    size_t runs = 10;
+    size_t runs = 20;
     for (size_t i = 0; i < runs; i++)
     {
         ::std::vector<VoronoiSite> sites;
@@ -406,20 +406,20 @@ TEST(VoronoiTests, SortPointsTest)
 TEST(VoronoiTests, BucketSortTest)
 {
     ::boost::timer::cpu_timer total;
-    size_t runs = 10;
+    size_t runs = 20;
     for (size_t i = 0; i < runs; i++)
     {
+        VoronoiGenerator vg;
         ::std::vector<VoronoiSite> sites;
         size_t count = 1000000+(i%2);
         sites.reserve(count);
+        glm::dvec3* points = vg.genRandomInput(count);
         for (size_t j = 0; j < count; j++)
         {
-            glm::dvec3 p = glm::dvec3(static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX, static_cast<double>(rand()) / RAND_MAX);
-            p = glm::normalize(p);
-            sites.push_back(VoronoiSite(p, NULL));
+            sites.push_back(VoronoiSite(points[j], NULL));
             computePolarAndAzimuth<X>(sites.back());
         }
-
+        delete[] points;
         TaskGraph taskGraph;
         
         auto p_temps1 = new promise<vector<vector<VoronoiSite>>*>;
