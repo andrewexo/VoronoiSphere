@@ -120,7 +120,7 @@ void BucketSort1Task::process()
     // Distribute sites into buckets
     for (size_t i = 0; i < size; i++)
     {
-        size_t bucket_index = ::std::min((size_t)(((*td.sites)[i].m_polar / (M_PI/2.0)) * num_buckets), num_buckets-1);
+        size_t bucket_index = ::std::min((size_t)( ceil(num_buckets/2.0 * (1.0 - (*td.sites)[i].m_polCos)) ) , num_buckets-1);
         buckets[bucket_index].push_back((*td.sites)[i]);
     }
 
